@@ -4,4 +4,6 @@ normalBoundary - dictionary object containing the points on the boundary of the 
 
 Neural Nets
 normalNeuralNet
-100,000 training sample, usual cross entropy loss,
+1000 training sample, batch size 1
+
+balancedNeuralNet boundary, batch size 32

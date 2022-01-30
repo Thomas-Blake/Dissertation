@@ -114,25 +114,25 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch"):
 
 if __name__ == "__main__":
 
-    train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=40000)
-    test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=1000)
+    train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=1000)
+    test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=100)
 
 
     # train_dataset = CustomSyntheticDataset(datasetSize=10000)
     # test_dataset = CustomSyntheticDataset(datasetSize=1000)
-    train_dataloader = DataLoader(train_dataset, batch_size=64)
-    test_dataloader = DataLoader(test_dataset, batch_size=64)
+    train_dataloader = DataLoader(train_dataset, batch_size=32)
+    test_dataloader = DataLoader(test_dataset, batch_size=32)
 
     model = NeuralNetwork()
 
 
     learning_rate = 1e-3
-    batch_size = 64
+    batch_size = 16
 
 
 
 
-    balancedLoss = False
+    balancedLoss = True
     if(balancedLoss):
         classDist = train_dataset.empiricalWeight()
         weights = torch.zeros(train_dataset.distCount)
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-    epochs =20
+    epochs =200
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         train_loop(train_dataloader, model, loss_fn, optimizer)
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     ax, boundary = printDecBoundary(ax,model,detail=1000)
 
     ## Save to boundary
-    if False:
+    if True:
         if balancedLoss:
             with open('./synthExp2/balancedNeuralNetBoundary.pkl', 'wb') as f:
                 pickle.dump(boundary, f)
@@ -171,7 +171,7 @@ if __name__ == "__main__":
                 pickle.dump(boundary, f)
 
 
-    #train_dataset.printSample(ax)
+    train_dataset.printSample(ax)
 
     plt.show()
 
