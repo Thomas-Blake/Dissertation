@@ -11,11 +11,11 @@ with open('./synthExp2/balancedNeuralNetBoundary.pkl', 'rb') as handle:
 with open('./synthExp2/normalNeuralNetBoundary.pkl', 'rb') as handle:
     boundary2 = pickle.load(handle)
 
-# with open('./synthExp2/bayesBalancedBoundary.pkl', 'rb') as handle:
-#     boundary3 = pickle.load(handle)
+with open('./synthExp2/bayesBalancedBoundary.pkl', 'rb') as handle:
+    boundary3 = pickle.load(handle)
 
-# with open('./synthExp2/bayesNormalBoundary.pkl', 'rb') as handle:
-#     boundary4 = pickle.load(handle)
+with open('./synthExp2/bayesNormalBoundary.pkl', 'rb') as handle:
+    boundary4 = pickle.load(handle)
 
 fig, ax = plt.subplots()
 for key in boundary1.keys():
@@ -24,11 +24,11 @@ for key in boundary1.keys():
 for key in boundary2.keys():
   ax.scatter(boundary2[key][:,0],boundary2[key][:,1],c='grey',s=0.3)
 
-# for key in boundary3.keys():
-#   ax.scatter(boundary3[key][:,0],boundary3[key][:,1],c='blue',s=0.3)
+for key in boundary3.keys():
+  ax.scatter(boundary3[key][:,0],boundary3[key][:,1],c='blue',s=0.3)
 
-# for key in boundary4.keys():
-#   ax.scatter(boundary4[key][:,0],boundary4[key][:,1],c='green',s=0.3)
+for key in boundary4.keys():
+  ax.scatter(boundary4[key][:,0],boundary4[key][:,1],c='green',s=0.3)
 
 ds = CustomSyntheticDataset(datasetSize=10000)
 ds.printSample(ax,alpha=0.1)

@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # ax, boundary_normal = bp_normalBayes.findContour(ax,1000,'black')
     ax, boundary_normal = printDecBoundary(ax, vfunc,detail=1000,modeltype="numpy")
 
-    if True:
+    if False:
         with open('./synthExp2/bayesNormalBoundary.pkl', 'wb') as f:
             pickle.dump(boundary_normal, f)
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     ax, boundary_balanced = printDecBoundary(ax, vfunc, detail=1000, modeltype="numpy")
 
-    if True:
+    if False:
         with open('./synthExp2/bayesBalancedBoundary.pkl', 'wb') as f:
             pickle.dump(boundary_balanced, f)
 
