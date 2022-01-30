@@ -103,6 +103,7 @@ def main(_):
 
     # Iterate over the train dataset.
     for step, (x, y) in enumerate(train_dataset):
+      print("step",step)
       with tf.GradientTape() as tape:
         logits = model(x, training=True)
         loss_value = loss_fn(y, logits)
