@@ -98,12 +98,13 @@ def main(_):
   test_summary_writer = tf.summary.create_file_writer(
       os.path.join(FLAGS.tb_log_dir, 'test'))
 
+  print("number of epochs: ",dataset.num_epochs)
   # Train for num_epochs iterations over the train set.
   for epoch in range(dataset.num_epochs):
+    print("epoch number: ",epoch)
 
     # Iterate over the train dataset.
     for step, (x, y) in enumerate(train_dataset):
-      print("step",step)
       with tf.GradientTape() as tape:
         logits = model(x, training=True)
         loss_value = loss_fn(y, logits)
