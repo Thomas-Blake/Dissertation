@@ -1,0 +1,7 @@
+In this experiment we have one large normal distribution surrounded by many smaller normal distributions
+balancedBoundary - dictionary object containing the points on the boundary of the Bayes Estimator for the class balanced loss function
+normalBoundary - dictionary object containing the points on the boundary of the Bayes Estimator for the usual softmax corss entropy loss
+
+Neural Nets
+normalNeuralNet
+100,000 training sample, usual cross entropy loss,
