@@ -107,7 +107,7 @@ def dataset_mappings():
               'cifar10_test.tfrecord',
               12406,
               10000,
-              1241,
+              500,
               [  # (multiplier, epoch to start) tuples
                   (1.0, 20), (0.1, 604), (0.01, 926), (0.001, 1128)
               ]),
