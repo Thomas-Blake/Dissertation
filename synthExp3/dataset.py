@@ -27,17 +27,20 @@ def expDist(mu = 0.9, imbalanceFactor = None):
   # normalise
   dist=dist/np.sum(dist)
   ## change the order so that tail, head classes are in right place
+  
+  #plt.plot(dist)
+  #plt.show()
+  np.random.shuffle(dist[3:])
   np.save("synthExp3/dist",dist)
   plt.plot(dist)
-  plt.show()
-  np.random.shuffle(dist[3:])
+  plt.savefig('synthExp3/distFigure')
   return dist
 
 
 
 
 class CustomSyntheticDataset(Dataset):
-  def __init__(self, datasetSize=1000,dist=np.ones(33)/33,target_transform=None):
+  def __init__(self, datasetSize=10000,dist=np.ones(33)/33,target_transform=None):
     # Target transform will be one hot encoder
     # We need to change the size of output depending on whether target_transform exists
     self.target_transform = target_transform
@@ -144,10 +147,11 @@ class CustomSyntheticDataset(Dataset):
       else:
         ax.scatter(self.data[:,0],self.data[:,1],marker='.',alpha=alpha, c=self.data[:,2:].argmax(1), cmap=matplotlib.colors.ListedColormap(self.colors))
 
-      if showPlt:
-          plt.show()
-      else:
-          return ax
+      # if showPlt:
+      #     plt.show()
+      # else:
+      #     return ax
+      plt.savefig('synthExp3/test')
   def empiricalWeight(self):
     count = torch.zeros(self.distCount)
     for i in range(self.datasetSize):
@@ -160,7 +164,9 @@ class CustomSyntheticDataset(Dataset):
   
 if __name__ == "__main__":
   #data = CustomSyntheticDataset(dist=expDist(mu=0.9))
-  data = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'))
-  data.printSample()
-  #expDist(mu=0.9)
+  #data = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'))
+  #data.printSample()
+  #expDist(mu=0.8)
+  plt.plot(np.load('synthExp3/dist.npy'))
+  plt.savefig('synthExp3/distfig')
 
