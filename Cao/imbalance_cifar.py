@@ -26,6 +26,19 @@ class IMBALANCECIFAR10(torchvision.datasets.CIFAR10):
                 img_num_per_cls.append(int(img_max))
             for cls_idx in range(cls_num // 2):
                 img_num_per_cls.append(int(img_max * imb_factor))
+        elif imb_type == 'menon':
+            classDist = [1.0, 
+                        0.5993999999999999, 
+                        0.3592, 
+                        0.21539999999999998, 
+                        0.129, 
+                        0.0774, 
+                        0.0464, 
+                        0.027800000000000002, 
+                        0.0166, 
+                        0.009999999999999998]
+            for i in range(cls_num):
+                img_num_per_cls.append(int(classDist[i]*img_max))
         else:
             img_num_per_cls.extend([int(img_max)] * cls_num)
         return img_num_per_cls
@@ -86,3 +99,6 @@ if __name__ == '__main__':
     trainloader = iter(trainset)
     data, label = next(trainloader)
     import pdb; pdb.set_trace()
+
+
+
