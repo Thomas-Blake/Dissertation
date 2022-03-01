@@ -1,3 +1,4 @@
+from dis import dis
 import torch
 from torch import nn
 from torchvision.transforms import Lambda
@@ -17,11 +18,26 @@ def distCreater():
       dist[1+i+11*j] = np.random.uniform(0,10)
   return dist/np.sum(dist)
 
+def expDist(mu = 0.9, imbalanceFactor = None):
+  if(imbalanceFactor):
+    mu = imbalanceFactor**(-1/32)
+  dist = 2*np.ones(33)
+  for i in range(3,33):
+    dist[i] = mu**i
+  # normalise
+  dist=dist/np.sum(dist)
+  ## change the order so that tail, head classes are in right place
+  np.save("synthExp3/dist",dist)
+  plt.plot(dist)
+  plt.show()
+  np.random.shuffle(dist[3:])
+  return dist
+
 
 
 
 class CustomSyntheticDataset(Dataset):
-  def __init__(self, datasetSize=10000,dist=np.ones(33)/33,target_transform=None):
+  def __init__(self, datasetSize=1000,dist=np.ones(33)/33,target_transform=None):
     # Target transform will be one hot encoder
     # We need to change the size of output depending on whether target_transform exists
     self.target_transform = target_transform
@@ -39,40 +55,45 @@ class CustomSyntheticDataset(Dataset):
     self.distributions.append(self.dist1)
     self.colors.append('m')
 
-    for i in range(10):
-      self.mus.append(torch.tensor([5*np.cos(2*np.pi*i/10),5*np.sin(2*np.pi*i/10)],dtype=torch.float))
-      self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
-      self.distributions.append(MultivariateNormal(self.mus[i+1], covariance_matrix=self.sigmas[i+1]))
-      if(i % 2 == 0):
-        self.colors.append('b')
-      else:
-        self.colors.append('r')
-    
     self.mus.append(torch.tensor([15.,0.]))
     self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
-    self.dist2 = MultivariateNormal(self.mus[11], covariance_matrix=self.sigmas[11])
+    self.dist2 = MultivariateNormal(self.mus[1], covariance_matrix=self.sigmas[1])
     self.distributions.append(self.dist2)
     self.colors.append('m')
 
-    for i in range(10):
-      self.mus.append(torch.tensor([15+5*np.cos(2*np.pi*i/10),5*np.sin(2*np.pi*i/10)],dtype=torch.float))
-      self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
-      self.distributions.append(MultivariateNormal(self.mus[i+1+11], covariance_matrix=self.sigmas[i+1+11]))
-      if(i % 2 == 0):
-        self.colors.append('b')
-      else:
-        self.colors.append('r')
-
     self.mus.append(torch.tensor([7.5,-10]))
     self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
-    self.dist3 = MultivariateNormal(self.mus[22], covariance_matrix=self.sigmas[22])
+    self.dist3 = MultivariateNormal(self.mus[2], covariance_matrix=self.sigmas[2])
     self.distributions.append(self.dist3)
     self.colors.append('m')
 
     for i in range(10):
+      self.mus.append(torch.tensor([5*np.cos(2*np.pi*i/10),5*np.sin(2*np.pi*i/10)],dtype=torch.float))
+      self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
+      self.distributions.append(MultivariateNormal(self.mus[i+3], covariance_matrix=self.sigmas[i+3]))
+      if(i % 2 == 0):
+        self.colors.append('b')
+      else:
+        self.colors.append('r')
+
+
+  
+
+    for i in range(10):
+      self.mus.append(torch.tensor([15+5*np.cos(2*np.pi*i/10),5*np.sin(2*np.pi*i/10)],dtype=torch.float))
+      self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
+      self.distributions.append(MultivariateNormal(self.mus[i+3+10], covariance_matrix=self.sigmas[i+3+10]))
+      if(i % 2 == 0):
+        self.colors.append('b')
+      else:
+        self.colors.append('r')
+
+
+
+    for i in range(10):
       self.mus.append(torch.tensor([7.5+5*np.cos(2*np.pi*i/10),5*np.sin(2*np.pi*i/10)-10],dtype=torch.float))
       self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
-      self.distributions.append(MultivariateNormal(self.mus[i+1+22], covariance_matrix=self.sigmas[i+1+22]))
+      self.distributions.append(MultivariateNormal(self.mus[i+3+20], covariance_matrix=self.sigmas[i+3+20]))
       if(i % 2 == 0):
         self.colors.append('b')
       else:
@@ -138,7 +159,8 @@ class CustomSyntheticDataset(Dataset):
     return count/self.datasetSize
   
 if __name__ == "__main__":
-  data = CustomSyntheticDataset(dist=distCreater())
-  #print(data.mus)
+  #data = CustomSyntheticDataset(dist=expDist(mu=0.9))
+  data = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'))
   data.printSample()
+  #expDist(mu=0.9)
 

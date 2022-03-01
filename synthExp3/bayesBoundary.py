@@ -31,6 +31,8 @@ class BayesPredictor(CustomSyntheticDataset):
   def findContour(self, ax, detail=100,color='black'):
       x1=np.linspace(-7,22,detail+1)
       x2=np.linspace(-20,7,detail+1)
+
+      
       xx1,xx2=np.meshgrid(x1,x2)
       z = np.zeros(xx1.shape)
       for i in range(detail+1):
@@ -84,29 +86,29 @@ class BayesPredictor(CustomSyntheticDataset):
 if __name__ == "__main__":
 
     fig, ax = plt.subplots()
-    dist = distCreater()
-    np.save("./synthExp3/distribution",dist)
+    dist = np.load('synthExp3/dist.npy')
 
     #ds = CustomSyntheticDataset(datasetSize=100000)
     #dg.printSample(10000,ax)
 
     bp_normalBayes = BayesPredictor(False,dist)
-    vfunc = np.vectorize(bp_normalBayes.makePrediction)
-    ax, boundary_normal = bp_normalBayes.findContour(ax,1000,'black')
+    #vfunc = np.vectorize(bp_normalBayes.makePrediction)
+    ax, boundary_normal = bp_normalBayes.findContour(ax,100,'black')
     #ax, boundary_normal = printDecBoundary(ax, vfunc,detail=200,modeltype="numpy",distCount=33,a=-20,b=20)
 
-    if True:
-        with open('./synthExp2/bayesNormalBoundary.pkl', 'wb') as f:
+    if False:
+        with open('./synthExp3/bayesNormalBoundary.pkl', 'wb') as f:
             pickle.dump(boundary_normal, f)
 
-    bp_balancedLoss = BayesPredictor(True,dist)
-    vfunc = np.vectorize(bp_balancedLoss.makePrediction)
+    bp_balancedBayes = BayesPredictor(True,dist)
+    ax, boundary_balanced = bp_balancedBayes.findContour(ax,100,'blue')
+    #vfunc = np.vectorize(bp_balancedLoss.makePrediction)
 
 
     # ax, boundary_balanced = printDecBoundary(ax, vfunc, detail=200, modeltype="numpy",distCount=33,a=-20,b=20)
 
     if False:
-        with open('./synthExp2/bayesBalancedBoundary.pkl', 'wb') as f:
+        with open('./synthExp3/bayesBalancedBoundary.pkl', 'wb') as f:
             pickle.dump(boundary_balanced, f)
 
     plt.show()
