@@ -53,19 +53,20 @@ class CustomSyntheticDataset(Dataset):
     self.colors = []
 
     self.mus.append(torch.tensor([0.,0.]))
-    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    self.sigmas.append(torch.tensor([[1.,0.],[0.,1.]]))
     self.dist1 = MultivariateNormal(self.mus[0], covariance_matrix=self.sigmas[0])
     self.distributions.append(self.dist1)
     self.colors.append('m')
 
     self.mus.append(torch.tensor([15.,0.]))
-    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    #self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    self.sigmas.append(torch.tensor([[1.,0.],[0.,1.]]))
     self.dist2 = MultivariateNormal(self.mus[1], covariance_matrix=self.sigmas[1])
     self.distributions.append(self.dist2)
     self.colors.append('m')
 
     self.mus.append(torch.tensor([7.5,-10]))
-    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    self.sigmas.append(torch.tensor([[1.,0.],[0.,1.]]))
     self.dist3 = MultivariateNormal(self.mus[2], covariance_matrix=self.sigmas[2])
     self.distributions.append(self.dist3)
     self.colors.append('m')
@@ -151,7 +152,10 @@ class CustomSyntheticDataset(Dataset):
       #     plt.show()
       # else:
       #     return ax
-      plt.savefig('synthExp3/test')
+      if showPlt:
+        plt.savefig('synthExp3/test')
+      else:
+        return ax
   def empiricalWeight(self):
     count = torch.zeros(self.distCount)
     for i in range(self.datasetSize):

@@ -1,2 +1,8 @@
 In this experiment I plan to introduce more classes. Ensure everyone has a different frequency.
 mu =0.8
+
+NeuralNetTraining1
+Train a normal Neural network using a balanced and non-balanced loss
+
+NueralNetTraining2
+Decouple classifier and feature representation as in Kang paper
