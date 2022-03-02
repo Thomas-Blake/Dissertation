@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     bp_normalBayes = BayesPredictor(False,dist)
     #vfunc = np.vectorize(bp_normalBayes.makePrediction)
-    ax, boundary_normal = bp_normalBayes.findContour(ax,50,'black')
+    ax, boundary_normal = bp_normalBayes.findContour(ax,2000,'black')
     #ax, boundary_normal = printDecBoundary(ax, vfunc,detail=200,modeltype="numpy",distCount=33,a=-20,b=20)
 
     if True:
@@ -101,7 +101,7 @@ if __name__ == "__main__":
             pickle.dump(boundary_normal, f)
 
     bp_balancedBayes = BayesPredictor(True,dist)
-    ax, boundary_balanced = bp_balancedBayes.findContour(ax,50,'blue')
+    ax, boundary_balanced = bp_balancedBayes.findContour(ax,2000,'blue')
     #vfunc = np.vectorize(bp_balancedLoss.makePrediction)
 
 
