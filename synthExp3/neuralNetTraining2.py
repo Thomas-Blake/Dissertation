@@ -151,29 +151,30 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss()
 
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate,momentum=0.9)
+    #optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 
-    epochs =1000
+    epochs =300
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         train_loop(train_dataloader, model, loss_fn, optimizer)
         test_loop(test_dataloader, model, loss_fn)
     print("Done!")
-    torch.save(model,"./synthExp3/boundaries/nn2-1")
+    #torch.save(model,"./synthExp3/boundaries/nn2-1")
 
     fig, ax = plt.subplots()
-    ax, boundary = printDecBoundary(ax,model,detail=100)
-    #ax = train_dataset.printSample(ax)
-    plt.savefig('synthExp3/images/neuralNet2-1')
+    ax, boundary = printDecBoundary(ax,model,detail=1000)
+    ax = train_dataset.printSample(ax)
+    #plt.savefig('synthExp3/images/neuralNet2-1')
 
-    print(LA.norm(model.Wmatrix,dim=0))
+    np.save('synthExp3/boundaries/momentumNorm',LA.norm(model.Wmatrix,dim=0).detach().numpy())
 
     
 
     ## Save to boundary
-    if False:
-        with open('./synthExp3/normalNeuralNetBoundary.pkl', 'wb') as f:
+    if True:
+        with open('./synthExp3/boundaries/normalNeuralNetBoundary.pkl', 'wb') as f:
             pickle.dump(boundary, f)
 
 

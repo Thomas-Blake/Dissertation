@@ -53,26 +53,27 @@ class CustomSyntheticDataset(Dataset):
     self.colors = []
 
     self.mus.append(torch.tensor([0.,0.]))
-    self.sigmas.append(torch.tensor([[1.,0.],[0.,1.]]))
+    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
     self.dist1 = MultivariateNormal(self.mus[0], covariance_matrix=self.sigmas[0])
     self.distributions.append(self.dist1)
     self.colors.append('m')
 
     self.mus.append(torch.tensor([15.,0.]))
     #self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
-    self.sigmas.append(torch.tensor([[1.,0.],[0.,1.]]))
+    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
     self.dist2 = MultivariateNormal(self.mus[1], covariance_matrix=self.sigmas[1])
     self.distributions.append(self.dist2)
     self.colors.append('m')
 
     self.mus.append(torch.tensor([7.5,-10]))
-    self.sigmas.append(torch.tensor([[1.,0.],[0.,1.]]))
+    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
     self.dist3 = MultivariateNormal(self.mus[2], covariance_matrix=self.sigmas[2])
     self.distributions.append(self.dist3)
     self.colors.append('m')
 
     for i in range(10):
       self.mus.append(torch.tensor([5*np.cos(2*np.pi*i/10),5*np.sin(2*np.pi*i/10)],dtype=torch.float))
+      # self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
       self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
       self.distributions.append(MultivariateNormal(self.mus[i+3], covariance_matrix=self.sigmas[i+3]))
       if(i % 2 == 0):
@@ -153,7 +154,9 @@ class CustomSyntheticDataset(Dataset):
       # else:
       #     return ax
       if showPlt:
-        plt.savefig('synthExp3/test')
+        ax.set_xlabel('x1')
+        ax.set_ylabel('x2')
+        plt.savefig('synthExp3/images/exampleTrainDataset')
       else:
         return ax
   def empiricalWeight(self):
@@ -168,9 +171,9 @@ class CustomSyntheticDataset(Dataset):
   
 if __name__ == "__main__":
   #data = CustomSyntheticDataset(dist=expDist(mu=0.9))
-  #data = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'))
-  #data.printSample()
+  data = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'))
+  data.printSample()
   #expDist(mu=0.8)
-  plt.plot(np.load('synthExp3/dist.npy'))
-  plt.savefig('synthExp3/distfig')
+  #plt.plot(np.load('synthExp3/dist.npy'))
+  #plt.savefig('synthExp3/distfig')
 
