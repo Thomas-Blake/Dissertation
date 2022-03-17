@@ -4,3 +4,5 @@ logit_adjustment/__pycache__
 Cao/log
 Cao/data
 Cao/checkpoint
+.DS_Store
+synthExp4/__pycache__/dataset.cpython-37.pyc
