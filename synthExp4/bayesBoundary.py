@@ -20,8 +20,9 @@ from dataset import CustomSyntheticDataset,distCreater
 
 
 class BayesPredictor(CustomSyntheticDataset):
-  def __init__(self,balancedLoss,dist=None):
-    self.balancedLoss = balancedLoss
+  def __init__(self,dist=None,alpha=1,beta=1):
+    self.alpha=alpha
+    self.beta=beta
 
     if(dist is None):
         super().__init__()
@@ -29,8 +30,9 @@ class BayesPredictor(CustomSyntheticDataset):
         super().__init__(dist=dist)
   
   def findContour(self, ax, detail=100,color='black'):
-      x1=np.linspace(-7,22,detail+1)
-      x2=np.linspace(-20,7,detail+1)
+      # used to be -6,8
+      x1=np.linspace(2,6,detail+1)
+      x2=np.linspace(-2,2,detail+1)
 
       
       xx1,xx2=np.meshgrid(x1,x2)
@@ -71,11 +73,41 @@ class BayesPredictor(CustomSyntheticDataset):
   
   def makePrediction(self,x1,x2):
     predict = np.zeros(self.distCount)
-    for i in range(self.distCount):
-      if self.balancedLoss:
-          predict[i] = multivariate_normal.pdf((x1,x2), mean=self.mus[i], cov=self.sigmas[i])
-      else:
-          predict[i] = self.dist[i]*multivariate_normal.pdf((x1,x2), mean=self.mus[i], cov=self.sigmas[i])
+    # p1 = P(X|Y_1=y_1)
+    for i in range(3):
+        p1 = 0
+        y1 = i
+        for j in range(5):
+            p1 += (1/5)*multivariate_normal.pdf((x1,x2), mean=self.mus[5*y1+j], cov=self.sigmas[5*y1+j])
+            #print(p1)
+        for j in range(5):
+            y2 = 5*i+j
+            if p1 == 0:
+                p2 = 0
+            else:
+                p2 = multivariate_normal.pdf((x1,x2), mean=self.mus[y2], cov=self.sigmas[y2])/(5*p1)
+            predict[y2] = p1*(self.alpha*(p2-1)+self.alpha+self.beta)
+    return np.argmax(predict)
+
+
+
+
+    # for i in range(self.distCount):
+    #     y1 = i // 5
+    #     y2 = i
+    #     p1=0
+    #     #p1 = sum P(X|Y_2=y_2)P(Y_2=k|Y_1=k)
+    #     for j in range(5):
+    #         p1 += (1/5)*multivariate_normal.pdf((x1,x2), mean=self.mus[5*y1+j], cov=self.sigmas[5*y1+j])
+    #     # p2 = P(Y_2=y_2|Y_1=y_1,X)=P(X|Y_2,Y_1)P(Y_2|Y_1)/P(X|Y_1=y_1)
+    #     p2 = multivariate_normal.pdf((x1,x2), mean=self.mus[y2], cov=self.sigmas[2])*(1/5)/p1
+    #     #print("p1",p1)
+    #     #print("p2",p2)
+    #     # predict[i] = p1*(self.alpha*(p2-1)+self.alpha+self.beta)
+    #     predict[i] = p1
+    #print(predict)
+    
+
     return np.argmax(predict)
   
   def __call__(self,x):
@@ -86,31 +118,23 @@ class BayesPredictor(CustomSyntheticDataset):
 if __name__ == "__main__":
 
     fig, ax = plt.subplots()
-    dist = np.load('synthExp3/dist.npy')
 
-    #ds = CustomSyntheticDataset(datasetSize=100000)
-    #dg.printSample(10000,ax)
+    ds = CustomSyntheticDataset(datasetSize=1000)
+    ds.printSample(ax)
 
-    bp_normalBayes = BayesPredictor(False,dist)
-    #vfunc = np.vectorize(bp_normalBayes.makePrediction)
-    ax, boundary_normal = bp_normalBayes.findContour(ax,50,'black')
-    #ax, boundary_normal = printDecBoundary(ax, vfunc,detail=200,modeltype="numpy",distCount=33,a=-20,b=20)
-
-    if True:
-        with open('./synthExp3/boundaries/bayesNormalBoundary.pkl', 'wb') as f:
-            pickle.dump(boundary_normal, f)
-
-    bp_balancedBayes = BayesPredictor(True,dist)
-    ax, boundary_balanced = bp_balancedBayes.findContour(ax,50,'blue')
-    #vfunc = np.vectorize(bp_balancedLoss.makePrediction)
+    bp = BayesPredictor(alpha=1,beta=1)
+    ax, boundary_1 = bp.findContour(ax,400,'black')
+    bp = BayesPredictor(alpha=1,beta=1000)
+    ax, boundary_1000 = bp.findContour(ax,400,'red')
+    #bp.makePrediction(0,0)
 
 
-    # ax, boundary_balanced = printDecBoundary(ax, vfunc, detail=200, modeltype="numpy",distCount=33,a=-20,b=20)
-    plt.savefig('synthExp3/bayes')
 
     if True:
-        with open('./synthExp3/boundaries/bayesBalancedBoundary.pkl', 'wb') as f:
-            pickle.dump(boundary_balanced, f)
+        with open('./synthExp4/boundaries/boundary_1.pkl', 'wb') as f:
+            pickle.dump(boundary_1, f)
+        with open('./synthExp4/boundaries/boundary_1000.pkl', 'wb') as f:
+            pickle.dump(boundary_1000, f)
 
     plt.show()
 

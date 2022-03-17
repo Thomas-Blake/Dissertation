@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from torch.distributions.multivariate_normal import MultivariateNormal
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import itertools
 import matplotlib
 
@@ -56,7 +57,7 @@ class CustomSyntheticDataset(Dataset):
       for j in range(5):
         #print(5*np.cos(2*np.pi*i/3)+np.cos(2*np.pi*j/5),5*np.sin(2*np.pi*i/3)+np.sin(2*np.pi*j/5))
         #plt.scatter(4*np.cos(2*np.pi*i/3)+2*np.cos(2*np.pi*j/5),4*np.sin(2*np.pi*i/3)+2*np.sin(2*np.pi*j/5),c="black")
-        self.mus.append(torch.tensor([4*np.cos(2*np.pi*i/3)+2*np.cos(2*np.pi*j/5),4*np.sin(2*np.pi*i/3)+2*np.sin(2*np.pi*j/5)],dtype=torch.float))
+        self.mus.append(torch.tensor([4*np.cos(2*np.pi*i/3)+1.5*np.cos(2*np.pi*j/5),4*np.sin(2*np.pi*i/3)+1.5*np.sin(2*np.pi*j/5)],dtype=torch.float))
         self.sigmas.append(torch.tensor([[0.4,0.],[0.,0.4]]))
         self.distributions.append(MultivariateNormal(self.mus[5*i+j], covariance_matrix=self.sigmas[5*i+j]))
         self.colors.append("black")
@@ -64,6 +65,9 @@ class CustomSyntheticDataset(Dataset):
 
 
     self.distCount = len(self.distributions)
+    i=0
+    self.mus[14] = torch.tensor([4*np.cos(2*np.pi*i/3),4*np.sin(2*np.pi*i/3)],dtype=torch.float)
+    self.distributions[14] = MultivariateNormal(self.mus[14], covariance_matrix=self.sigmas[14])
     self.colors = ["lightcoral","indianred","brown","firebrick","maroon","olive","forestgreen","limegreen","green","darkseagreen","skyblue","cornflowerblue","blue","navy","steelblue"]
 
     if target_transform == None:
@@ -100,16 +104,43 @@ class CustomSyntheticDataset(Dataset):
     return data
 
   def printSample(self,ax=None,alpha=0.3):
-      showPlt=True
+      showPlt=False
       if(ax==None):
           showPlt = True
           fig, ax = plt.subplots()
       if self.target_transform == None:
-        ax.scatter(self.data[:,0],self.data[:,1],marker='.',alpha=alpha, c=self.data[:,2], cmap=matplotlib.colors.ListedColormap(self.colors))
+        self.data = self.data.detach().numpy()
+        self.labels = self.data[:,2].astype(int)
+        #print(self.labels)
+        #print(self.data)
+        scatter = ax.scatter(self.data[:,0],self.data[:,1],marker='.',alpha=alpha, c=self.labels, cmap=matplotlib.colors.ListedColormap(self.colors))
+        #print(scatter.legend_elements())
+        #for i in range(self.datasetSize):
+        #  ax.scatter(self.data[i,0],self.data[i,1],marker='.',alpha=alpha, color=self.colors[self.labels[i]],label=self.labels[i])
       else:
-        ax.scatter(self.data[:,0],self.data[:,1],marker='.',alpha=alpha, c=self.data[:,2:].argmax(1), cmap=matplotlib.colors.ListedColormap(self.colors))
+        ax.scatter(self.data[:,0],self.data[:,1],marker='.',label=self.data[:,2],alpha=alpha, c=self.data[:,2:].argmax(1), cmap=matplotlib.colors.ListedColormap(self.colors))
 
       if showPlt:
+          
+          legendArrary = []
+          parents = ['a','b','c']
+          for i in range(3):
+            for j in range(5):
+              legendArrary.append(parents[i]+str(5*i+j))
+          print(legendArrary)
+          #legend1 = ax.legend(*scatter.legend_elements())
+          #ax.add_artist(legend1)
+          classes = [i for i in range(15)]
+          class_colours = self.colors
+          recs = []
+          for i in range(0, len(class_colours)):
+            recs.append(mpatches.Rectangle((0, 0), 1, 1, fc=class_colours[i]))
+          ax.legend(recs, classes, loc=4)
+          ax.set_xlim([-6,10])
+          ax.set_xlabel('x1')
+          ax.set_ylabel('x2')
+          #ax.legend()
+          plt.savefig('synthExp4/images/exampleDataset')
           plt.show()
       else:
           return ax
@@ -125,6 +156,6 @@ class CustomSyntheticDataset(Dataset):
     return count/self.datasetSize
   
 if __name__ == "__main__":
-  data = CustomSyntheticDataset()
+  data = CustomSyntheticDataset(datasetSize=10000)
   data.printSample()
 
