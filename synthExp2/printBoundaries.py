@@ -5,16 +5,16 @@ from dataset import CustomSyntheticDataset
 import matplotlib.lines as mlines
 
 
-with open('./synthExp2/balancedNeuralNetBoundary.pkl', 'rb') as handle:
+with open('./synthExp2/boundaries/balancedNeuralNetBoundary.pkl', 'rb') as handle:
     boundary1 = pickle.load(handle)
 
-with open('./synthExp2/normalNeuralNetBoundary.pkl', 'rb') as handle:
+with open('./synthExp2/boundaries/normalNeuralNetBoundary.pkl', 'rb') as handle:
     boundary2 = pickle.load(handle)
 
-with open('./synthExp2/bayesBalancedBoundary.pkl', 'rb') as handle:
+with open('./synthExp2/boundaries/bayesBalancedBoundary.pkl', 'rb') as handle:
     boundary3 = pickle.load(handle)
 
-with open('./synthExp2/bayesNormalBoundary.pkl', 'rb') as handle:
+with open('./synthExp2/boundaries/bayesNormalBoundary.pkl', 'rb') as handle:
     boundary4 = pickle.load(handle)
 
 fig, ax = plt.subplots()
