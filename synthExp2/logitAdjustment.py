@@ -1,4 +1,3 @@
-from bdb import effective
 import torch
 from torch import nn
 from torchvision.transforms import Lambda
@@ -17,20 +16,24 @@ class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(2, 60),
+            nn.Linear(2, 50),
             nn.ReLU(),
-            nn.Linear(60, 50),
+            nn.Linear(50, 50),
             nn.ReLU()
-            #nn.Linear(50, 50),
-            #nn.ReLU()
         )
-        self.Wmatrix = torch.normal(mean=torch.zeros((50,33)), std=torch.ones((50,33)))
+        self.Wmatrix = torch.normal(mean=torch.zeros((50,11)), std=torch.ones((50,11)))
         self.Wmatrix.requires_grad = True
 
 
     def forward(self, x):
         features = self.linear_relu_stack(x)
         return torch.matmul(features, self.Wmatrix)
+    
+    def weightedPredict(self, input,tau,weights):
+    
+      output = self.__call__(input)
+      out = output - tau*torch.log(weights)
+      return out
 
 
 
@@ -55,7 +58,7 @@ def train_loop(dataloader, model, loss_fn, optimizer):
     print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
 
 
-def test_loop(dataloader, model, loss_fn,performance=None):
+def test_loop(dataloader, model, loss_fn,weights,performance=None, tau=torch.tensor(0)):
     # performance keeps track of the average performance on the tail classes
     size = len(dataloader.dataset)
     tail_size = size - train_dataset.empiricalWeight()[0]
@@ -65,7 +68,7 @@ def test_loop(dataloader, model, loss_fn,performance=None):
 
     with torch.no_grad():
         for X, y in dataloader:
-            pred = model(X)
+            pred = model.weightedPredict(X,tau,weights)
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
             tail_correct += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) != 0)).type(torch.float).sum().item()
@@ -73,16 +76,16 @@ def test_loop(dataloader, model, loss_fn,performance=None):
 
     test_loss /= num_batches
     correct /= size
-    if performance:
-        performance.append(tail_correct/tail_size)
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    return test_loss
+
   
 
   
 
 def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCount=33,a=-10,b=10):
-    x1=np.linspace(-10,20,detail+1)
-    x2=np.linspace(-15,10,detail+1)
+    x1=np.linspace(-10,10,detail+1)
+    x2=np.linspace(-10,10,detail+1)
     xx1,xx2=np.meshgrid(x1,x2)
     xx1 = np.reshape(xx1,-1)
     xx2 = np.reshape(xx2,-1)
@@ -131,13 +134,9 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 
 
 if __name__ == "__main__":
+    train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
+    test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),dist=np.ones(11)/11,datasetSize=10000)
 
-    train_dataset = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
-    test_dataset = CustomSyntheticDataset(dist=np.ones(33)/33,target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=5000)
-
-
-    # train_dataset = CustomSyntheticDataset(datasetSize=10000)
-    # test_dataset = CustomSyntheticDataset(datasetSize=1000)
     train_dataloader = DataLoader(train_dataset, batch_size=32)
     test_dataloader = DataLoader(test_dataset, batch_size=32)
 
@@ -147,40 +146,42 @@ if __name__ == "__main__":
     learning_rate = 1e-3
 
 
-
-
     loss_fn = nn.CrossEntropyLoss()
 
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate,momentum=0.9)
-    #optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-    #optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+    # calculate pi_k which we will call weights
+    classDist = train_dataset.empiricalWeight()
+    dataCount = classDist.sum()
+    weights = classDist/dataCount
 
 
-    epochs =500
+    epochs =30
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         train_loop(train_dataloader, model, loss_fn, optimizer)
-        test_loop(test_dataloader, model, loss_fn)
+        test_loop(test_dataloader, model, loss_fn,weights)
     print("Done!")
     #torch.save(model,"./synthExp3/boundaries/nn2-1")
 
     fig, ax = plt.subplots()
-    ax, boundary = printDecBoundary(ax,model,detail=1000)
-    ax = train_dataset.printSample(ax)
-    #plt.savefig('synthExp3/images/neuralNet2-1')
+    #ax, boundary = printDecBoundary(ax,model,detail=1000)
+    #ax = train_dataset.printSample(ax)
+    taus = np.linspace(0,2,10)
+    BalancedErrors = np.zeros(10)
 
-    #np.save('synthExp3/boundaries/norm',LA.norm(model.Wmatrix,dim=0).detach().numpy())
+
+    for i in range(10):
+        BalancedErrors[i] = test_loop(test_dataloader, model,loss_fn,weights,tau=taus[i])
+    plt.plot(taus,BalancedErrors)
+    plt.savefig("synthExp2/images/logitAdjustment-tau-graph",dpi=300)
+
+
+
 
     
 
-    ## Save to boundary
-    if False:
-        with open('./synthExp3/boundaries/normalNeuralNetBoundary.pkl', 'wb') as f:
-            pickle.dump(boundary, f)
-
-
-    #train_dataset.printSample(ax)
 
     plt.show()
 

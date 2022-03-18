@@ -10,4 +10,12 @@ KANG.py
 Investigates Kang method
 Seperate classifier and feature learner
 
+Logit adjustment.py
+Investigates logit adjustment
+
+We have recreated the graph from Menon Figure 2c
+
+Adaptive.py
+Cao et al. adaptive margin loss
+
 

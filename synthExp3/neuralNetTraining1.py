@@ -176,7 +176,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     ax, boundary = printDecBoundary(ax,model,detail=100)
     ax = train_dataset.printSample(ax)
-    plt.savefig('synthExp3/images/neuralNet2')
+    #plt.savefig('synthExp3/images/neuralNet2')
 
     ## Save to boundary
     if False:

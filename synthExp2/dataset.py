@@ -23,7 +23,8 @@ class CustomSyntheticDataset(Dataset):
     self.colors = []
 
     self.mus.append(torch.tensor([0.,0.]))
-    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    #self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    self.sigmas.append(torch.tensor([[4.,0.],[0.,4.]]))
     self.dist1 = MultivariateNormal(self.mus[0], covariance_matrix=self.sigmas[0])
     self.distributions.append(self.dist1)
     self.colors.append('m')
