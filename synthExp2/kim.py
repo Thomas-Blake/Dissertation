@@ -1,4 +1,3 @@
-from contextlib import redirect_stderr
 import torch
 from torch import nn
 from torchvision.transforms import Lambda
@@ -11,7 +10,7 @@ import matplotlib
 from dataset import CustomSyntheticDataset
 import pickle
 from torch import linalg as LA
-from lossFunctions import CEL, adapativeLoss, equalisedLoss, logitAdjusted
+from lossFunctions import CEL, adapativeLoss
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
@@ -30,6 +29,10 @@ class NeuralNetwork(nn.Module):
         features = self.linear_relu_stack(x)
         return torch.matmul(features, self.Wmatrix)
     
+    def weightedPredict(self, input,tau,weights):
+    
+      output = self.__call__(input)
+      return torch.div(output,torch.pow(weights,tau))
 
 
 
@@ -41,7 +44,6 @@ def train_loop(dataloader, model, loss_fn, optimizer):
         # Compute prediction and loss
         pred = model(X)
         loss = loss_fn(pred, y)
-        #adapativeLoss(pred,y,priors)
 
 
         # Backpropagation
@@ -56,7 +58,7 @@ def train_loop(dataloader, model, loss_fn, optimizer):
     print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
 
 
-def test_loop(dataloader, model, loss_fn,performance=None, tau=torch.tensor(0)):
+def test_loop(dataloader, model, loss_fn,weights, tau=torch.tensor(0)):
     # performance keeps track of the average performance on the tail classes
     size = len(dataloader.dataset)
     tail_size = size - train_dataset.empiricalWeight()[0]
@@ -66,7 +68,7 @@ def test_loop(dataloader, model, loss_fn,performance=None, tau=torch.tensor(0)):
 
     with torch.no_grad():
         for X, y in dataloader:
-            pred = model(X)
+            pred = model.weightedPredict(X,tau,weights)
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
             tail_correct += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) != 0)).type(torch.float).sum().item()
@@ -81,7 +83,7 @@ def test_loop(dataloader, model, loss_fn,performance=None, tau=torch.tensor(0)):
 
   
 
-def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCount=33,a=-10,b=10):
+def printDecBoundary(ax,model,weights,detail=1000,color='black',modeltype="torch",distCount=33,a=-10,b=10,tau=0.1):
     x1=np.linspace(-10,10,detail+1)
     x2=np.linspace(-10,10,detail+1)
     xx1,xx2=np.meshgrid(x1,x2)
@@ -90,11 +92,11 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
     input = np.vstack((xx1,xx2)).T
     if(modeltype == 'torch'):
         input = torch.tensor(input,dtype=torch.float,requires_grad=False)
-        z=np.argmax(model(input).detach().numpy(),axis=1)
+        z=np.argmax(model.weightedPredict(input,tau,weights).detach().numpy(),axis=1)
     else:
         # used for finding Bayes decision boundary
         ## z=np.argmax(model(input[:,0],input[:,1]),axis=1)
-        z = model(input[:,0],input[:,1])
+        z = model.weightedPredict(input[:,0],input[:,1])
 
 
     ## Shape back to original
@@ -138,73 +140,51 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(train_dataset, batch_size=32)
     test_dataloader = DataLoader(test_dataset, batch_size=32)
 
+    # calculate pi_k which we will call weights
+    classDist = train_dataset.empiricalWeight()
+    dataCount = classDist.sum()
+    weights = classDist/dataCount
+
     model = NeuralNetwork()
 
 
     learning_rate = 1e-3
 
 
-    loss_fn_test = nn.CrossEntropyLoss()
-    priors = train_dataset.empiricalWeight()
-    loss_fn = lambda x,y : adapativeLoss(x,y,priors)
+    loss_fn = nn.CrossEntropyLoss()
 
 
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-    epochs =100
-  
+    epochs =30
+    
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         train_loop(train_dataloader, model, loss_fn, optimizer)
-        test_loop(test_dataloader, model, loss_fn_test)
+        test_loop(test_dataloader, model, loss_fn,weights,tau=0.5)
     print("Done!")
     #torch.save(model,"./synthExp3/boundaries/nn2-1")
 
     fig, ax = plt.subplots()
-    ax, boundary = printDecBoundary(ax,model,detail=1000)
+    ax, boundary = printDecBoundary(ax,model,weights,detail=1000,tau=0.1,color="black")
+    ax, boundary = printDecBoundary(ax,model,weights,detail=1000,tau=0,color="blue")
+    ax, boundary = printDecBoundary(ax,model,weights,detail=1000,tau=0.5,color="green")
     #ax = train_dataset.printSample(ax)
-
-    model2 = NeuralNetwork()
-    optimizer2 = torch.optim.SGD(model2.parameters(), lr=learning_rate)
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model2, loss_fn_test, optimizer2)
-        test_loop(test_dataloader, model2, loss_fn_test)
-    print("Done!")
-    ax, boundary = printDecBoundary(ax,model2,detail=1000,color="red")
-
-    equalisedLossFn = lambda x,y : equalisedLoss(x,y,priors)
-    model3 = NeuralNetwork()
-    optimizer3 = torch.optim.SGD(model3.parameters(), lr=learning_rate)
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model3, equalisedLossFn, optimizer3)
-        test_loop(test_dataloader, model3, loss_fn_test)
-    print("Done!")
-    ax, boundary = printDecBoundary(ax,model3,detail=1000,color="green")
-
-    
-    logitAdjustedFn = lambda x,y : logitAdjusted(x,y,priors)
-    model4 = NeuralNetwork()
-    optimizer4 = torch.optim.SGD(model4.parameters(), lr=learning_rate)
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model4, logitAdjustedFn, optimizer4)
-        test_loop(test_dataloader, model4, loss_fn_test)
-    print("Done!")
-    ax, boundary = printDecBoundary(ax,model4,detail=1000,color="grey")
+    # taus = np.linspace(0,2,10)
+    # BalancedErrors = np.zeros(10)
+    # for i in range(10):
+    #     BalancedErrors[i] = test_loop(test_dataloader, model,loss_fn,weights,tau=taus[i])
+    # plt.plot(taus,BalancedErrors)
+    # plt.savefig("synthExp2/images/kim-tau-graph",dpi=300)
 
 
 
 
     
 
-
-    #plt.show()
-    plt.savefig("synthExp2/images/adaptiveERMComparison",dpi=300)
-
-
+    plt.savefig("test",dpi=300)
+    plt.show()
 
 
 
