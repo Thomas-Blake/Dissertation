@@ -6,3 +6,6 @@ Train a normal Neural network using a balanced and non-balanced loss
 
 NueralNetTraining2
 Decouple classifier and feature representation as in Kang paper
+
+NeuralNetTraining3
+Looks at standard ERM and investigates over training on classes

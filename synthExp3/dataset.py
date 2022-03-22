@@ -168,6 +168,16 @@ class CustomSyntheticDataset(Dataset):
       else:
         count[int(self.data[i,2:].argmax().item())] += 1
     return count/self.datasetSize
+  def count(self):
+    count = torch.zeros(self.distCount)
+    for i in range(self.datasetSize):
+
+      if self.target_transform == None:
+        count[int(self.data[i,2].item())] += 1
+      else:
+        count[int(self.data[i,2:].argmax().item())] += 1
+    return count
+
   
 if __name__ == "__main__":
   #data = CustomSyntheticDataset(dist=expDist(mu=0.9))

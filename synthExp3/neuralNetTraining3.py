@@ -16,13 +16,13 @@ class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(2, 50),
+            nn.Linear(2, 100),
             nn.ReLU(),
-            nn.Linear(50, 50),
+            nn.Linear(100, 100),
             nn.ReLU(),
-            nn.Linear(50, 50),
+            nn.Linear(100, 100),
             nn.ReLU(),
-            nn.Linear(50, 33),
+            nn.Linear(100, 33),
         )
 
     def forward(self, x):
@@ -35,6 +35,7 @@ class NeuralNetwork(nn.Module):
 def train_loop(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     correct =0
+    classCorrect = np.zeros(33)
     for batch, (X, y) in enumerate(dataloader):
         # Compute prediction and loss
         pred = model(X)
@@ -46,9 +47,13 @@ def train_loop(dataloader, model, loss_fn, optimizer):
         optimizer.step()
         correct += (pred.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
 
-        if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+        #for classNum in range(33):
+        #    classCorrect[classNum] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == classNum)).type(torch.float).sum().item()
+    
+    #classAccuracy = np.divide(classCorrect, dataloader.dataset.count())
+    if batch % 100 == 0:
+        loss, current = loss.item(), batch * len(X)
+        print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
     print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
 
 
@@ -59,6 +64,7 @@ def test_loop(dataloader, model, loss_fn,performance=None):
     num_batches = len(dataloader)
     test_loss, correct = 0, 0
     tail_correct = 0
+    classCorrect = np.zeros(33)
 
     with torch.no_grad():
         for X, y in dataloader:
@@ -66,13 +72,17 @@ def test_loop(dataloader, model, loss_fn,performance=None):
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
             tail_correct += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) != 0)).type(torch.float).sum().item()
+            for classNum in range(33):
+                classCorrect[classNum] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == classNum)).type(torch.float).sum().item()
 
-
+    classAccuracy = np.divide(classCorrect, dataloader.dataset.count())
     test_loss /= num_batches
     correct /= size
     if performance:
         performance.append(tail_correct/tail_size)
+    
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    return classAccuracy.detach().numpy()
   
 
   
@@ -145,38 +155,32 @@ if __name__ == "__main__":
 
 
 
-    counts = train_dataset.count()
-    print(counts)
-    balancedLoss = True
-    if(balancedLoss):
-        classDist = train_dataset.empiricalWeight()
-        weights = torch.zeros(train_dataset.distCount)
-        for i in range(train_dataset.distCount):
-            if classDist[i] != 0:
-                weights[i] = 1/classDist[i]
-
-        loss_fn = nn.CrossEntropyLoss(weight=weights)
-    else:
-        # Initialize the loss function
-        # this loss function includes softmax
-        loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss()
 
 
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-    epochs =1000
+    epochs = 5000
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
         train_loop(train_dataloader, model, loss_fn, optimizer)
-        test_loop(test_dataloader, model, loss_fn)
+        trainClassAccuracy = test_loop(train_dataloader, model, loss_fn)
+        testClassAccuracy = test_loop(test_dataloader, model, loss_fn)
     print("Done!")
-    # torch.save(model,"./synthExp1/normalNeuralNet")
+    torch.save(model,"./synthExp1/normalNeuralNet")
 
     fig, ax = plt.subplots()
     ax, boundary = printDecBoundary(ax,model,detail=1000)
     ax = train_dataset.printSample(ax)
-    plt.savefig('synthExp3/images/neuralNet1-3')
+    # index = np.flip(np.load('synthExp3/dist.npy').argsort())
+    # trainClassAccuracy = trainClassAccuracy[index]
+    # testClassAccuracy = testClassAccuracy[index]
+
+
+    # ax.plot(np.arange(33), trainClassAccuracy)
+    # ax.plot(np.arange(33), testClassAccuracy)
+    plt.savefig('synthExp3/images/neuralNet1-4',dpi=500)
 
     ## Save to boundary
     if False:
