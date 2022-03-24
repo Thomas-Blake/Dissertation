@@ -166,8 +166,8 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 
 
 if __name__ == "__main__":
-    observationsTrain = np.zeros((1,7))
-    observationsTest = np.zeros((1,7))
+    observationsTrain = np.zeros((5,7))
+    observationsTest = np.zeros((5,7))
     for k in range(1):
         print("k = ",k)
         train_dataset = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
 
         #epochs = 12000
-        epochs = 300
+        epochs = 10000
         for t in range(epochs):
             print(f"Epoch {t+1}\n-------------------------------"+str(k))
             train_loop(train_dataloader, model, loss_fn, optimizer)

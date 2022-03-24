@@ -50,6 +50,7 @@ def train_loop(dataloader, model, loss_fn, optimizer):
             loss, current = loss.item(), batch * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
     print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
+    return correct/size
 
 
 def test_loop(dataloader, model, loss_fn,performance=None):
@@ -73,6 +74,7 @@ def test_loop(dataloader, model, loss_fn,performance=None):
     if performance:
         performance.append(tail_correct/tail_size)
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    return correct
   
 
   
@@ -130,7 +132,7 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 if __name__ == "__main__":
 
     train_dataset = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
-    test_dataset = CustomSyntheticDataset(dist=np.ones(33)/33,target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=1000)
+    test_dataset = CustomSyntheticDataset(dist=np.ones(33)/33,target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
 
 
     # train_dataset = CustomSyntheticDataset(datasetSize=10000)
@@ -138,7 +140,7 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(train_dataset, batch_size=32)
     test_dataloader = DataLoader(test_dataset, batch_size=32)
 
-    model = NeuralNetwork()
+    
 
 
     learning_rate = 1e-3
@@ -162,21 +164,43 @@ if __name__ == "__main__":
         loss_fn = nn.CrossEntropyLoss()
 
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    
 
-
-    epochs =1000
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model, loss_fn, optimizer)
-        test_loop(test_dataloader, model, loss_fn)
-    print("Done!")
-    # torch.save(model,"./synthExp1/normalNeuralNet")
-
+    ## accuracyTracker will track the train accuracy over the epochs
+    epochs =500
+    trainAccuracy = np.zeros((epochs,6))
     fig, ax = plt.subplots()
-    ax, boundary = printDecBoundary(ax,model,detail=1000)
-    ax = train_dataset.printSample(ax)
-    plt.savefig('synthExp3/images/neuralNet1-3')
+    colors= ["cornflowerblue","royalblue","midnightblue","blue","dodgerblue","orange"]
+    for k in range(5):
+        model = NeuralNetwork()
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+        for t in range(epochs):
+            print(f"Epoch {t+1}\n-------------------------------"+str(k))
+            trainAccuracy[t,k] = train_loop(train_dataloader, model, loss_fn, optimizer)
+            test_loop(test_dataloader, model, loss_fn)
+        print("Done!")
+        ax.plot(np.arange(epochs),trainAccuracy[:,k],color=colors[k])
+    # torch.save(model,"./synthExp1/normalNeuralNet")
+    model = NeuralNetwork()
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    loss_fn = nn.CrossEntropyLoss()
+    for t in range(epochs):
+        print(f"Epoch {t+1}\n-------------------------------"+str(6))
+        trainAccuracy[t,5] = train_loop(train_dataloader, model, loss_fn, optimizer)
+        test_loop(test_dataloader, model, loss_fn)
+    ax.plot(np.arange(epochs),trainAccuracy[:,5],color=colors[5])
+    ax.legend(['balanced ERM 1','balanced ERM 2','balanced ERM 3','balanced ERM 4','balanced ERM 5','standard ERM'])
+    ax.set_xlabel("epoch")
+    ax.set_ylabel("accuracy on train dataset")
+    ax.set_ybound([0,1])
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(True)
+
+    
+    #ax, boundary = printDecBoundary(ax,model,detail=1000)
+    #ax = train_dataset.printSample(ax)
+    
+    plt.savefig('synthExp3/images/balancedErrorIssues/balancedTrain')
 
     ## Save to boundary
     if False:
