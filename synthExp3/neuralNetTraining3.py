@@ -1,4 +1,5 @@
 from bdb import effective
+from tokenize import group
 import torch
 from torch import nn
 from torchvision.transforms import Lambda
@@ -50,21 +51,34 @@ def train_loop(dataloader, model, loss_fn, optimizer):
         #for classNum in range(33):
         #    classCorrect[classNum] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == classNum)).type(torch.float).sum().item()
     
+        # if batch % 100 == 0:
+        #     loss, current = loss.item(), batch * len(X)
+        #     print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
     #classAccuracy = np.divide(classCorrect, dataloader.dataset.count())
-    if batch % 100 == 0:
-        loss, current = loss.item(), batch * len(X)
-        print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-    print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
+
+    #print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
 
 
-def test_loop(dataloader, model, loss_fn,performance=None):
+def test_loop(dataloader, model, loss_fn,performance=None,grouped=False):
     # performance keeps track of the average performance on the tail classes
     size = len(dataloader.dataset)
     tail_size = size - train_dataset.empiricalWeight()[0]
     num_batches = len(dataloader)
     test_loss, correct = 0, 0
     tail_correct = 0
-    classCorrect = np.zeros(33)
+    
+
+    dataCount = dataloader.dataset.count()
+    index = np.flip(np.load('synthExp3/dist.npy').argsort())
+    if grouped:
+        groupedCount = np.zeros(7)
+        groupedCount[0] = dataCount[0]+dataCount[1]+dataCount[2]
+        for i in range(3,33):
+            groupedCount[((i-3) // 5)+1] += dataCount[index[i]]
+        classCorrect = np.zeros(7)
+    else:
+        classCorrect = np.zeros(33)
+    
 
     with torch.no_grad():
         for X, y in dataloader:
@@ -72,17 +86,31 @@ def test_loop(dataloader, model, loss_fn,performance=None):
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
             tail_correct += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) != 0)).type(torch.float).sum().item()
-            for classNum in range(33):
-                classCorrect[classNum] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == classNum)).type(torch.float).sum().item()
+            if grouped:
+                classCorrect[0] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == 0)).type(torch.float).sum().item()
+                classCorrect[0] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == 1)).type(torch.float).sum().item()
+                classCorrect[0] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == 2)).type(torch.float).sum().item()
+                for classNum in range(3,33):
+                    classCorrect[((classNum-3) // 5)+1] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == index[classNum])).type(torch.float).sum().item()
+            else:
+                for classNum in range(33):
+                    classCorrect[classNum] += ((pred.argmax(1) == y.argmax(1)) & (y.argmax(1) == classNum)).type(torch.float).sum().item()
 
-    classAccuracy = np.divide(classCorrect, dataloader.dataset.count())
+
+
+
+
+    if grouped:
+        classAccuracy = np.divide(classCorrect, groupedCount)
+    else:
+        classAccuracy = np.divide(classCorrect, dataCount)
     test_loss /= num_batches
     correct /= size
     if performance:
         performance.append(tail_correct/tail_size)
     
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-    return classAccuracy.detach().numpy()
+    return classAccuracy
   
 
   
@@ -138,49 +166,64 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 
 
 if __name__ == "__main__":
-
-    train_dataset = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
-    test_dataset = CustomSyntheticDataset(dist=np.ones(33)/33,target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=1000)
-
-
-    # train_dataset = CustomSyntheticDataset(datasetSize=10000)
-    # test_dataset = CustomSyntheticDataset(datasetSize=1000)
-    train_dataloader = DataLoader(train_dataset, batch_size=32)
-    test_dataloader = DataLoader(test_dataset, batch_size=32)
-
-    model = NeuralNetwork()
+    observationsTrain = np.zeros((1,7))
+    observationsTest = np.zeros((1,7))
+    for k in range(1):
+        print("k = ",k)
+        train_dataset = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
+        test_dataset = CustomSyntheticDataset(dist=np.ones(33)/33,target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
 
 
-    learning_rate = 1e-3
+        train_dataloader = DataLoader(train_dataset, batch_size=32)
+        test_dataloader = DataLoader(test_dataset, batch_size=32)
 
 
 
-    loss_fn = nn.CrossEntropyLoss()
+
+        model = NeuralNetwork()
 
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+        learning_rate = 1e-3
 
 
-    epochs = 5000
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model, loss_fn, optimizer)
-        trainClassAccuracy = test_loop(train_dataloader, model, loss_fn)
-        testClassAccuracy = test_loop(test_dataloader, model, loss_fn)
-    print("Done!")
-    torch.save(model,"./synthExp1/normalNeuralNet")
+
+        loss_fn = nn.CrossEntropyLoss()
+
+
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+
+        #epochs = 12000
+        epochs = 300
+        for t in range(epochs):
+            print(f"Epoch {t+1}\n-------------------------------"+str(k))
+            train_loop(train_dataloader, model, loss_fn, optimizer)
+        print("Done!")
+        #torch.save(model,"./synthExp3/NeuralNet")
+        observationsTrain[k,:] = test_loop(train_dataloader, model, loss_fn,grouped=True)
+        observationsTest[k,:] = test_loop(test_dataloader, model, loss_fn,grouped=True)
+    
+    observationsTrainMean = observationsTrain.mean(axis=0)
+    observationsTestMean = observationsTest.mean(axis=0)
 
     fig, ax = plt.subplots()
-    ax, boundary = printDecBoundary(ax,model,detail=1000)
-    ax = train_dataset.printSample(ax)
+    # ax, boundary = printDecBoundary(ax,model,detail=1000)
+    # ax = train_dataset.printSample(ax)
+    # plt.savefig('synthExp3/images/neuralNet1-5',dpi=500)
     # index = np.flip(np.load('synthExp3/dist.npy').argsort())
-    # trainClassAccuracy = trainClassAccuracy[index]
-    # testClassAccuracy = testClassAccuracy[index]
+    # trainClassAccuracy = observationsTrainMean[index]
+    # testClassAccuracy = observationsTestMean[index]
 
-
-    # ax.plot(np.arange(33), trainClassAccuracy)
-    # ax.plot(np.arange(33), testClassAccuracy)
-    plt.savefig('synthExp3/images/neuralNet1-4',dpi=500)
+    #fig, ax = plt.subplots()
+    ax.yaxis.grid(True)
+    ax.set_axisbelow(True)
+    ax.bar(np.arange(7)-0.1, observationsTrainMean,width=0.3)
+    ax.bar(np.arange(7)+0.1, observationsTestMean,width=0.3)
+    #ax.set_xticks(2*np.arange(16))
+    ax.set_xlabel("class index")
+    ax.set_ylabel("accuracy %")
+    ax.legend(["train","test"])
+    plt.savefig('synthExp3/images/classAccuracy5',dpi=500)
 
     ## Save to boundary
     if False:
@@ -200,3 +243,65 @@ if __name__ == "__main__":
 
 
 
+
+# if __name__ == "__main__":
+
+#     train_dataset = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
+#     test_dataset = CustomSyntheticDataset(dist=np.ones(33)/33,target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
+
+
+#     # train_dataset = CustomSyntheticDataset(datasetSize=10000)
+#     # test_dataset = CustomSyntheticDataset(datasetSize=1000)
+#     train_dataloader = DataLoader(train_dataset, batch_size=32)
+#     test_dataloader = DataLoader(test_dataset, batch_size=32)
+
+#     model = NeuralNetwork()
+
+
+#     learning_rate = 1e-3
+
+
+
+#     loss_fn = nn.CrossEntropyLoss()
+
+
+#     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+
+#     model = torch.load("./synthExp3/NeuralNet")
+
+#     #fig, ax = plt.subplots()
+#     #ax, boundary = printDecBoundary(ax,model,detail=1000)
+#     #ax = train_dataset.printSample(ax)
+#     #plt.savefig('synthExp3/images/neuralNet1-4',dpi=500)
+#     index = np.flip(np.load('synthExp3/dist.npy').argsort())
+
+#     trainClassAccuracy = test_loop(train_dataloader, model, loss_fn)
+#     testClassAccuracy = test_loop(test_dataloader, model, loss_fn)
+#     trainClassAccuracy = trainClassAccuracy[index]
+#     testClassAccuracy = testClassAccuracy[index]
+
+#     fig, ax = plt.subplots()
+#     ax.yaxis.grid(True)
+#     ax.bar(np.arange(33)-0.1, trainClassAccuracy,width=0.3)
+#     ax.bar(np.arange(33)+0.1, testClassAccuracy,width=0.3)
+#     ax.set_xticks(2*np.arange(16))
+
+
+#     ax.legend(["train","test"])
+
+#     plt.savefig('synthExp3/images/test',dpi=500)
+
+#     ## Save to boundary
+#     if False:
+#         if balancedLoss:
+#             with open('./synthExp3/balancedNeuralNetBoundary.pkl', 'wb') as f:
+#                 pickle.dump(boundary, f)
+#         else:
+#             with open('./synthExp3/normalNeuralNetBoundary.pkl', 'wb') as f:
+#                 pickle.dump(boundary, f)
+
+
+#     #train_dataset.printSample(ax)
+
+#     #plt.show()

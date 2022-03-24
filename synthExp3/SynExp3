@@ -9,3 +9,6 @@ Decouple classifier and feature representation as in Kang paper
 
 NeuralNetTraining3
 Looks at standard ERM and investigates over training on classes
+Want to show overfitting
+Split classes into groups
+1,2,3 in one group, then 4,5,6,7,8 etc to give 7 groups

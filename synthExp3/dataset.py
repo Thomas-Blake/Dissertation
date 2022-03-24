@@ -8,6 +8,7 @@ from torch.distributions.multivariate_normal import MultivariateNormal
 import matplotlib.pyplot as plt
 import itertools
 import matplotlib
+import matplotlib.patches as mpatches
 
 def distCreater():
   dist=np.ones(33)
@@ -31,9 +32,9 @@ def expDist(mu = 0.9, imbalanceFactor = None):
   #plt.plot(dist)
   #plt.show()
   np.random.shuffle(dist[3:])
-  np.save("synthExp3/dist",dist)
-  plt.plot(dist)
-  plt.savefig('synthExp3/distFigure')
+  np.save("synthExp3/dist5",dist)
+  #plt.plot(dist)
+  #plt.savefig('synthExp3/distFigure2')
   return dist
 
 
@@ -181,9 +182,16 @@ class CustomSyntheticDataset(Dataset):
   
 if __name__ == "__main__":
   #data = CustomSyntheticDataset(dist=expDist(mu=0.9))
-  data = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'))
+  data = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),datasetSize=10000)
   data.printSample()
   #expDist(mu=0.8)
   #plt.plot(np.load('synthExp3/dist.npy'))
-  #plt.savefig('synthExp3/distfig')
+  plt.xlabel('x1')
+  plt.ylabel('x2')
+  red_patch = mpatches.Patch(color='red', label='Tail Classes')
+  blue_patch = mpatches.Patch(color='blue', label='Tail Classes')
+  pink_patch = mpatches.Patch(color='m', label='Head Classes')
+  plt.legend(handles=[red_patch,blue_patch,pink_patch])
+  plt.savefig('synthExp3/images/exampleTrainDataset',dpi=500)
+
 
