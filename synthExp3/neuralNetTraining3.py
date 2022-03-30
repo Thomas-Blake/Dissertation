@@ -168,7 +168,7 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 if __name__ == "__main__":
     observationsTrain = np.zeros((5,7))
     observationsTest = np.zeros((5,7))
-    for k in range(1):
+    for k in range(5):
         print("k = ",k)
         train_dataset = CustomSyntheticDataset(dist=np.load('synthExp3/dist.npy'),target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
         test_dataset = CustomSyntheticDataset(dist=np.ones(33)/33,target_transform=Lambda(lambda y: torch.zeros(33, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
@@ -217,13 +217,18 @@ if __name__ == "__main__":
     #fig, ax = plt.subplots()
     ax.yaxis.grid(True)
     ax.set_axisbelow(True)
-    ax.bar(np.arange(7)-0.1, observationsTrainMean,width=0.3)
-    ax.bar(np.arange(7)+0.1, observationsTestMean,width=0.3)
+    print("final ",observationsTrainMean)
+    ax.bar(np.arange(7)-0.15, observationsTrainMean,width=0.3)
+    ax.bar(np.arange(7)+0.15, observationsTestMean,width=0.3)
     #ax.set_xticks(2*np.arange(16))
-    ax.set_xlabel("class index")
+    ax.set_xlabel("class group")
     ax.set_ylabel("accuracy %")
     ax.legend(["train","test"])
-    plt.savefig('synthExp3/images/classAccuracy5',dpi=500)
+    plt.savefig('synthExp3/images/classAccuracy6',dpi=500)
+
+    # fig, ax = plt.subplots()
+    # ax, boundary = printDecBoundary(ax,model,detail=1000)
+    # plt.savefig('synthExp3/images/neuralNet3-1',dpi=500)
 
     ## Save to boundary
     if False:

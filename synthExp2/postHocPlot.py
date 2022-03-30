@@ -25,7 +25,7 @@ ax.plot(taus,means[:,2],color="red")
 ax.fill_between(taus, means[:,0]-stdDev[:,0], means[:,0]+stdDev[:,0] ,alpha=0.3, facecolor="blue")
 ax.fill_between(taus, means[:,1]-stdDev[:,1], means[:,1]+stdDev[:,1] ,alpha=0.3, facecolor="orange")
 ax.fill_between(taus, means[:,2]-stdDev[:,2], means[:,2]+stdDev[:,2] ,alpha=0.3, facecolor="red")
-ax.legend(["weight normalization 1","logit adjustment","weight normalization 2"])
+ax.legend(["weight normalisation","Logit Adjustment","re-scaling method"])
 
 plt.scatter(taus[max0], means[max0,0],marker='x',color='black')
 ax.text(taus[max0], means[max0,0], "  " + '%.4f' % means[max0,0], transform=ax.transData)
@@ -42,5 +42,5 @@ ax.set_ylabel("test accuracy")
 
 
 
-plt.savefig('testing')
+plt.savefig('synthExp2/images/postHocComparison3')
 plt.show()

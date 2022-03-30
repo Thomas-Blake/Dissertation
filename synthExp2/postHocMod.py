@@ -30,7 +30,7 @@ class NeuralNetwork(nn.Module):
         features = self.linear_relu_stack(x)
         return torch.matmul(features, self.Wmatrix)
     
-    def kang(self, input,tau):
+    def weightNorm(self, input,tau):
       output = self.__call__(input)
       norms = LA.norm(model.Wmatrix,dim=0)
       return torch.div(output,torch.pow(norms,tau))
@@ -40,7 +40,7 @@ class NeuralNetwork(nn.Module):
       out = output - tau*torch.log(weights)
       return out
 
-    def kim(self, input,tau, weights):
+    def rescaling(self, input,tau, weights):
       output = self.__call__(input)
       return torch.div(output,torch.pow(weights,tau))
 
@@ -78,12 +78,14 @@ def test_loop(dataloader, model, loss_fn,weights,method="kang", tau=torch.tensor
 
     with torch.no_grad():
         for X, y in dataloader:
-            if method == "kang":
-              pred = model.kang(X,tau)
-            elif method == "logitAdjustment":
+            if method == "weight normalisation":
+              pred = model.weightNorm(X,tau)
+            elif method == "Logit Adjustment":
               pred = model.logitAdjustment(X, tau, weights)
-            elif method == "kim":
-              pred = model.kim(X,tau,weights)
+            elif method == "re-scaling method":
+              pred = model.rescaling(X,tau,weights)
+            else:
+                pred = model(X)
 
             test_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
@@ -214,8 +216,8 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 
 
 if __name__ == "__main__":
-    observations = np.zeros((100,50,3))
-    for k in range(100):
+    observations = np.zeros((10,50,3))
+    for k in range(10):
         print(" k = ",k)
         train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
         test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),dist=np.ones(11)/11,datasetSize=10000)
@@ -245,7 +247,7 @@ if __name__ == "__main__":
             #print(f"Epoch {t+1}\n-------------------------------")
             train_loop(train_dataloader, model, loss_fn, optimizer)
         
-        methods =  ["kang","logitAdjustment","kim"]
+        methods =  ["weight normalisation","Logit Adjustment","re-scaling method"]
         taus = np.linspace(0,1,50)
         for i in range(3):
             for j in range(50):
@@ -280,7 +282,7 @@ if __name__ == "__main__":
 
 
 
-    plt.savefig("synthExp2/images/posthoccomparison",dpi=300)
+    plt.savefig("synthExp2/images/posthoccomparison2",dpi=300)
 
 
 
