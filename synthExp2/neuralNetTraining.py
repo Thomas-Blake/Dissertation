@@ -31,20 +31,29 @@ class NeuralNetwork(nn.Module):
 
 def train_loop(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    train_loss, correct = 0, 0
     for batch, (X, y) in enumerate(dataloader):
         # Compute prediction and loss
         pred = model(X)
 
         loss = loss_fn(pred, y)
+        correct += (pred.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
 
         # Backpropagation
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
+        train_loss += loss.item()
+
+
         if batch % 1000 == 0:
             loss, current = loss.item(), batch * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+    train_loss /= num_batches
+    correct /= size
+    return train_loss
 
 
 def test_loop(dataloader, model, loss_fn):
@@ -115,8 +124,8 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch"):
 
 if __name__ == "__main__":
 
-    train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=1000)
-    test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=100)
+    train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
+    test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
 
 
     # train_dataset = CustomSyntheticDataset(datasetSize=10000)
@@ -133,7 +142,7 @@ if __name__ == "__main__":
 
 
 
-    balancedLoss = True
+    balancedLoss = False
     if(balancedLoss):
         classDist = train_dataset.empiricalWeight()
         weights = torch.zeros(train_dataset.distCount)
@@ -151,16 +160,18 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-    epochs =200
+    epochs =100
+    lossTracker = np.zeros(epochs)
+    #accuracyTracker = np.zeros(epochs)
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model, loss_fn, optimizer)
+        lossTracker[t] = train_loop(train_dataloader, model, loss_fn, optimizer)
         test_loop(test_dataloader, model, loss_fn)
     print("Done!")
     # torch.save(model,"./synthExp1/normalNeuralNet")
 
     fig, ax = plt.subplots()
-    ax, boundary = printDecBoundary(ax,model,detail=1000)
+    #ax, boundary = printDecBoundary(ax,model,detail=1000)
 
     ## Save to boundary
     if False:
@@ -172,7 +183,9 @@ if __name__ == "__main__":
                 pickle.dump(boundary, f)
 
 
-    train_dataset.printSample(ax)
+    #train_dataset.printSample(ax)
+    ax.plot(np.arange(epochs),lossTracker)
+    plt.savefig('testing')
 
     plt.show()
 

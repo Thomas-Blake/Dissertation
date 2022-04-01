@@ -3,19 +3,19 @@ balancedBoundary - dictionary object containing the points on the boundary of th
 normalBoundary - dictionary object containing the points on the boundary of the Bayes Estimator for the usual softmax corss entropy loss
 
 We look to compare the different methods as in the Menon paper
-We consider 50,000 data points for train and 50,000 for test
+We consider 10,000 data points for train and 10,000 for test
   We repeat for 100 independent samples
 
-KANG.py
-Investigates Kang method
-Seperate classifier and feature learner
 
-Logit adjustment.py
-Investigates logit adjustment
+LossComparison.py
+Compares different loss functions
+Creates lossComparisonLoss.npy and lossComparisonAccuracy.npy
 
-We have recreated the graph from Menon Figure 2c
+postHocMod.py
+Compares post Hoc comparison methods
 
-Adaptive.py
-Cao et al. adaptive margin loss
+NeuralNetTraining.py
+Looks at how many epochs needed for ERM training to converge
+
 
 

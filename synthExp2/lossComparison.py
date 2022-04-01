@@ -75,7 +75,7 @@ def test_loop(dataloader, model, loss_fn,performance=None, tau=torch.tensor(0)):
     test_loss /= num_batches
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
-    return test_loss
+    return correct, test_loss
 
   
 
@@ -132,77 +132,83 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 
 
 if __name__ == "__main__":
-    train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
-    test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),dist=np.ones(11)/11,datasetSize=10000)
-
-    train_dataloader = DataLoader(train_dataset, batch_size=32)
-    test_dataloader = DataLoader(test_dataset, batch_size=32)
-
-    model = NeuralNetwork()
-
 
     learning_rate = 1e-3
 
 
     loss_fn_test = nn.CrossEntropyLoss()
-    priors = train_dataset.empiricalWeight()
-    loss_fn = lambda x,y : adapativeLoss(x,y,priors)
 
 
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+    
 
 
-    epochs =100
-  
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model, loss_fn, optimizer)
-        test_loop(test_dataloader, model, loss_fn_test)
-    print("Done!")
-    #torch.save(model,"./synthExp3/boundaries/nn2-1")
+
+    epochs =300
+
+
+    observationsAccuracy = np.zeros((20,4))
+    observationsLoss = np.zeros((20,4))
+
+
+    for k in range(20):
+        train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
+        test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),dist=np.ones(11)/11,datasetSize=10000)
+
+        train_dataloader = DataLoader(train_dataset, batch_size=32)
+        test_dataloader = DataLoader(test_dataset, batch_size=32)
+        priors = train_dataset.empiricalWeight()
+
+
+        loss_fn = lambda x,y : adapativeLoss(x,y,priors)
+        model = NeuralNetwork()
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+
+        for t in range(epochs):
+            print(f"Epoch {t+1}\n--------------------------loss--0-- k = "+str(k))
+            train_loop(train_dataloader, model, loss_fn, optimizer)
+        observationsAccuracy[k,0],observationsLoss[k,0]  = test_loop(test_dataloader, model, loss_fn_test)
+        #torch.save(model,"./synthExp3/boundaries/nn2-1")
+
+        #ax = train_dataset.printSample(ax)
+
+        model2 = NeuralNetwork()
+        optimizer2 = torch.optim.SGD(model2.parameters(), lr=learning_rate)
+        for t in range(epochs):
+            print(f"Epoch {t+1}\n--------------------------loss--1-- k = "+str(k))
+            train_loop(train_dataloader, model2, loss_fn_test, optimizer2)
+        observationsAccuracy[k,1],observationsLoss[k,1] = test_loop(test_dataloader, model2, loss_fn_test)
+
+        equalisedLossFn = lambda x,y : equalisedLoss(x,y,priors)
+        model3 = NeuralNetwork()
+        optimizer3 = torch.optim.SGD(model3.parameters(), lr=learning_rate)
+        for t in range(epochs):
+            print(f"Epoch {t+1}\n--------------------------loss--2-- k = "+str(k))
+            train_loop(train_dataloader, model3, equalisedLossFn, optimizer3)
+        observationsAccuracy[k,2],observationsLoss[k,2] = test_loop(test_dataloader, model3, loss_fn_test)
+
+        logitAdjustedFn = lambda x,y : logitAdjusted(x,y,priors)
+        model4 = NeuralNetwork()
+        optimizer4 = torch.optim.SGD(model4.parameters(), lr=learning_rate)
+        for t in range(epochs):
+            print(f"Epoch {t+1}\n--------------------------loss--3-- k = "+str(k))
+            train_loop(train_dataloader, model4, logitAdjustedFn, optimizer4)
+        observationsAccuracy[k,3],observationsLoss[k,3] = test_loop(test_dataloader, model4, loss_fn_test)
+
+
 
     fig, ax = plt.subplots()
-    ax, boundary = printDecBoundary(ax,model,detail=1000)
-    #ax = train_dataset.printSample(ax)
-
-    model2 = NeuralNetwork()
-    optimizer2 = torch.optim.SGD(model2.parameters(), lr=learning_rate)
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model2, loss_fn_test, optimizer2)
-        test_loop(test_dataloader, model2, loss_fn_test)
-    print("Done!")
-    ax, boundary = printDecBoundary(ax,model2,detail=1000,color="red")
-
-    equalisedLossFn = lambda x,y : equalisedLoss(x,y,priors)
-    model3 = NeuralNetwork()
-    optimizer3 = torch.optim.SGD(model3.parameters(), lr=learning_rate)
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model3, equalisedLossFn, optimizer3)
-        test_loop(test_dataloader, model3, loss_fn_test)
-    print("Done!")
-    ax, boundary = printDecBoundary(ax,model3,detail=1000,color="green")
+    np.save('synthExp2/lossComparisionAccuracy',observationsAccuracy)
+    np.save('synthExp2/lossComparisionLoss',observationsLoss)
+    ax.boxplot([observationsAccuracy[:,0],observationsAccuracy[:,1],observationsAccuracy[:,2],observationsAccuracy[:,3]])
 
     
-    logitAdjustedFn = lambda x,y : logitAdjusted(x,y,priors)
-    model4 = NeuralNetwork()
-    optimizer4 = torch.optim.SGD(model4.parameters(), lr=learning_rate)
-    for t in range(epochs):
-        print(f"Epoch {t+1}\n-------------------------------")
-        train_loop(train_dataloader, model4, logitAdjustedFn, optimizer4)
-        test_loop(test_dataloader, model4, loss_fn_test)
-    print("Done!")
-    ax, boundary = printDecBoundary(ax,model4,detail=1000,color="grey")
 
 
-
-
-    
 
 
     #plt.show()
-    plt.savefig("synthExp2/images/adaptiveERMComparison",dpi=300)
+    plt.savefig("synthExp2/images/adaptiveERMComparison2",dpi=300)
 
 
 
