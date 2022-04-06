@@ -1,2 +1,8 @@
 Simple experiment to show fisher consistency
 First done analytically
+
+ERM1
+Uses a step function as pred and shifts the decision boundary
+
+ERM2 
+Uses a neural network
