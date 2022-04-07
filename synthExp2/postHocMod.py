@@ -65,7 +65,7 @@ def train_loop(dataloader, model, loss_fn, optimizer):
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
             #print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-    #print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
+    print("Train accuracy: ",100* (correct/size), "% Train numbers: ",correct, " / ",size)
 
 
 def test_loop(dataloader, model, loss_fn,weights,method="kang", tau=torch.tensor(0)):
@@ -216,8 +216,8 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch",distCo
 
 
 if __name__ == "__main__":
-    observations = np.zeros((10,50,3))
-    for k in range(10):
+    observations = np.zeros((20,50,3))
+    for k in range(20):
         print(" k = ",k)
         train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
         test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),dist=np.ones(11)/11,datasetSize=10000)
@@ -242,9 +242,9 @@ if __name__ == "__main__":
         optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-        epochs =150
+        epochs =300
         for t in range(epochs):
-            #print(f"Epoch {t+1}\n-------------------------------")
+            print(f"Epoch {t+1}\n-------------------------------")
             train_loop(train_dataloader, model, loss_fn, optimizer)
         
         methods =  ["weight normalisation","Logit Adjustment","re-scaling method"]
@@ -262,10 +262,10 @@ if __name__ == "__main__":
     stdDev = np.std(observations,axis=0)
     #ax, boundary = printDecBoundary(ax,model,detail=1000)
     #ax = train_dataset.printSample(ax)
-    with open('./synthExp2/postHocMeans.pkl', 'wb') as f:
+    with open('./synthExp2/boundaries/postHocMeans.pkl', 'wb') as f:
         pickle.dump(means, f)
 
-    with open('./synthExp2/postHocStd.pkl', 'wb') as f:
+    with open('./synthExp2/boundaries/postHocStd.pkl', 'wb') as f:
         pickle.dump(stdDev, f)
 
 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
 
 
 
-    plt.savefig("synthExp2/images/posthoccomparison2",dpi=300)
+    #plt.savefig("synthExp2/images/posthoccomparison2",dpi=300)
 
 
 

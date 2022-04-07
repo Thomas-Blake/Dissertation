@@ -23,14 +23,16 @@ class CustomSyntheticDataset(Dataset):
     self.colors = []
 
     self.mus.append(torch.tensor([0.,0.]))
-    self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    # self.sigmas.append(torch.tensor([[2.,0.],[0.,2.]]))
+    self.sigmas.append(torch.tensor([[4.,0.],[0.,4.]]))
     self.dist1 = MultivariateNormal(self.mus[0], covariance_matrix=self.sigmas[0])
     self.distributions.append(self.dist1)
     self.colors.append('m')
 
     for i in range(10):
       self.mus.append(torch.tensor([5*np.cos(2*np.pi*i/10),5*np.sin(2*np.pi*i/10)],dtype=torch.float))
-      self.sigmas.append(torch.tensor([[0.05,0.],[0.,0.05]]))
+      # self.sigmas.append(torch.tensor([[0.05,0.],[0.,0.05]]))
+      self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
       self.distributions.append(MultivariateNormal(self.mus[i+1], covariance_matrix=self.sigmas[i+1]))
       if(i % 2 == 0):
         self.colors.append('b')
@@ -100,5 +102,7 @@ class CustomSyntheticDataset(Dataset):
 
 
 if __name__ == "__main__":
-  ds = CustomSyntheticDataset(datasetSize=5000)
-  ds.printSample()
+  ds = CustomSyntheticDataset(datasetSize=10000)
+  fig, ax =plt.subplots()
+  ax = ds.printSample(ax=ax)
+  plt.savefig('synthExp1/images/exampleDataset5000')

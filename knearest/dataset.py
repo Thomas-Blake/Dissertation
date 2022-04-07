@@ -34,7 +34,7 @@ class CustomSyntheticDataset(Dataset):
       self.sigmas.append(torch.tensor([[0.1,0.],[0.,0.1]]))
       self.distributions.append(MultivariateNormal(self.mus[i+1], covariance_matrix=self.sigmas[i+1]))
       if(i % 2 == 0):
-        self.colors.append('royalblue')
+        self.colors.append('b')
       else:
         self.colors.append('r')
 

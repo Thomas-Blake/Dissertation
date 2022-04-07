@@ -198,8 +198,8 @@ if __name__ == "__main__":
 
 
     fig, ax = plt.subplots()
-    np.save('synthExp2/lossComparisionAccuracy',observationsAccuracy)
-    np.save('synthExp2/lossComparisionLoss',observationsLoss)
+    np.save('synthExp2/lossComparisonAccuracy',observationsAccuracy)
+    np.save('synthExp2/lossComparisonLoss',observationsLoss)
     ax.boxplot([observationsAccuracy[:,0],observationsAccuracy[:,1],observationsAccuracy[:,2],observationsAccuracy[:,3]])
 
     

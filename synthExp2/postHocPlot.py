@@ -34,6 +34,11 @@ ax.text(taus[max1], means[max1,1], "   " + '%.4f' % means[max1,1], transform=ax.
 plt.scatter(taus[max2], means[max2,2],marker='x',color='black')
 ax.text(taus[max2], means[max2,2], "  " + '%.4f' % means[max2,2], transform=ax.transData)
 
+
+ax.yaxis.grid(True)
+ax.set_axisbelow(True)
+
+
 ax.set_xbound([0,1])
 ax.set_ybound([0.6,1.02])
 ax.set_xlabel("tau")
@@ -42,5 +47,5 @@ ax.set_ylabel("test accuracy")
 
 
 
-plt.savefig('synthExp2/images/postHocComparison3')
+plt.savefig('synthExp2/images/postHocComparison4')
 plt.show()

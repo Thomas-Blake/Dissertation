@@ -53,7 +53,8 @@ def train_loop(dataloader, model, loss_fn, optimizer):
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
     train_loss /= num_batches
     correct /= size
-    return train_loss
+    print(f"Train Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {train_loss:>8f} \n")
+    return correct
 
 
 def test_loop(dataloader, model, loss_fn):
@@ -70,6 +71,7 @@ def test_loop(dataloader, model, loss_fn):
     test_loss /= num_batches
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+    return correct
   
 
 def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch"):
@@ -125,7 +127,7 @@ def printDecBoundary(ax,model,detail=1000,color='black',modeltype="torch"):
 if __name__ == "__main__":
 
     train_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
-    test_dataset = CustomSyntheticDataset(target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
+    test_dataset = CustomSyntheticDataset(dist=np.ones(11)/11,target_transform=Lambda(lambda y: torch.zeros(11, dtype=torch.float).scatter_(0, torch.tensor(y), value=1)),datasetSize=10000)
 
 
     # train_dataset = CustomSyntheticDataset(datasetSize=10000)
@@ -160,32 +162,37 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-    epochs =100
-    lossTracker = np.zeros(epochs)
+    epochs =5000
+    AccuracyTrackerTrain = np.zeros(epochs)
+    AccuracyTrackerTest = np.zeros(epochs)
     #accuracyTracker = np.zeros(epochs)
     for t in range(epochs):
         print(f"Epoch {t+1}\n-------------------------------")
-        lossTracker[t] = train_loop(train_dataloader, model, loss_fn, optimizer)
-        test_loop(test_dataloader, model, loss_fn)
+        AccuracyTrackerTrain[t] = train_loop(train_dataloader, model, loss_fn, optimizer)
+        AccuracyTrackerTest[t] = test_loop(test_dataloader, model, loss_fn)
     print("Done!")
     # torch.save(model,"./synthExp1/normalNeuralNet")
 
     fig, ax = plt.subplots()
-    #ax, boundary = printDecBoundary(ax,model,detail=1000)
+    ax, boundary = printDecBoundary(ax,model,detail=1000)
 
     ## Save to boundary
-    if False:
+    if True:
         if balancedLoss:
+            np.save('synthExp2/boundaries/accuracyTrackerTrainBalanced',AccuracyTrackerTrain)
+            np.save('synthExp2/boundaries/accuracyTrackerTestBalanced',AccuracyTrackerTest)
             with open('./synthExp2/boundaries/balancedNeuralNetBoundary.pkl', 'wb') as f:
                 pickle.dump(boundary, f)
         else:
+            np.save('synthExp2/boundaries/accuracyTrackerTrainNormal',AccuracyTrackerTrain)
+            np.save('synthExp2/boundaries/accuracyTrackerTestNormal',AccuracyTrackerTest)
             with open('./synthExp2/boundaries/normalNeuralNetBoundary.pkl', 'wb') as f:
                 pickle.dump(boundary, f)
 
 
     #train_dataset.printSample(ax)
-    ax.plot(np.arange(epochs),lossTracker)
-    plt.savefig('testing')
+    #ax.plot(np.arange(epochs),lossTracker)
+    #plt.savefig('testing')
 
     plt.show()
 

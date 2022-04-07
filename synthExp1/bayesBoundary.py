@@ -84,14 +84,14 @@ if __name__ == "__main__":
     ax, boundary_normal = bp_normalBayes.findContour(ax,1000,'black')
 
     if True:
-        with open('./synthExp1/bayesNormalBoundary.pkl', 'wb') as f:
+        with open('./synthExp1/boundaries2/bayesNormalBoundary.pkl', 'wb') as f:
             pickle.dump(boundary_normal, f)
 
     bp_balancedLoss = BayesPredictor(True)
     ax, boundary_balanced = bp_balancedLoss.findContour(ax,1000,'dimgrey')
 
     if True:
-        with open('./synthExp1/bayesBalancedBoundary.pkl', 'wb') as f:
+        with open('./synthExp1/boundaries2/bayesBalancedBoundary.pkl', 'wb') as f:
             pickle.dump(boundary_balanced, f)
 
     plt.show()
