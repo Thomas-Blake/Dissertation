@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
 
 
-    epochs =300
+    epochs =1000
 
 
     observationsAccuracy = np.zeros((20,4))

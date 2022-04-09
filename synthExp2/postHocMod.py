@@ -242,7 +242,8 @@ if __name__ == "__main__":
         optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 
-        epochs =300
+        #epochs =300
+        epochs=1000
         for t in range(epochs):
             print(f"Epoch {t+1}\n-------------------------------")
             train_loop(train_dataloader, model, loss_fn, optimizer)
