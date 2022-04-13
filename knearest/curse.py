@@ -1,6 +1,10 @@
 from ast import Lambda
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+
+font = {'size'   : 15}
+matplotlib.rc('font', **font)
 
 p = np.arange(1,15)
 print(p)
@@ -19,11 +23,11 @@ fig, ax = plt.subplots()
 ax.plot(p,n1,color='black')
 ax.text(p[-1]+0.5,n1[-1],'r=0.1')
 ax.plot(p,n2,color='black')
-ax.text(p[-1],n2[-1],'r=0.2')
+ax.text(p[-1],n2[-1],' r=0.2')
 ax.plot(p,n3,color='black')
-ax.text(p[-1],n3[-1],'r=0.3')
+ax.text(p[-1],n3[-1],' r=0.3')
 ax.plot(p,n4,color='black')
-ax.text(p[-1],n4[-1],'r=0.4')
+ax.text(p[-1],n4[-1],' r=0.4')
 ax.set_yscale('log')
 ax.set_xbound([0,17])
 ax.set_xlabel('p, dimensions')
