@@ -202,9 +202,13 @@ if __name__ == "__main__":
         #torch.save(model,"./synthExp3/NeuralNet")
         observationsTrain[k,:] = test_loop(train_dataloader, model, loss_fn,grouped=True)
         observationsTest[k,:] = test_loop(test_dataloader, model, loss_fn,grouped=True)
+
+    np.save('synthExp3/overfitTrain',observationsTrain)
+    np.save('synthExp3/overfitTest',observationsTest)
     
     observationsTrainMean = observationsTrain.mean(axis=0)
     observationsTestMean = observationsTest.mean(axis=0)
+
 
     fig, ax = plt.subplots()
     # ax, boundary = printDecBoundary(ax,model,detail=1000)
