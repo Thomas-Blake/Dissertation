@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+import matplotlib
+
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
 
 # with open('synthExp3/postHocMeans.pkl', 'rb') as handle:
 #     means = pickle.load(handle)
@@ -9,8 +13,8 @@ import pickle
 #     stdDev = pickle.load(handle)
 
 observations = np.load('synthExp3/observations.npy')
-means = np.mean(observations, axis=0)
-stdDev = np.std(observations,axis=0)
+means = 100*np.mean(observations, axis=0)
+stdDev = 100*np.std(observations,axis=0)
 
 fig, ax = plt.subplots()
 
@@ -29,17 +33,17 @@ ax.fill_between(taus, means[:,0]-stdDev[:,0], means[:,0]+stdDev[:,0] ,alpha=0.3,
 ax.fill_between(taus, means[:,1]-stdDev[:,1], means[:,1]+stdDev[:,1] ,alpha=0.3, facecolor="orange")
 ax.fill_between(taus, means[:,2]-stdDev[:,2], means[:,2]+stdDev[:,2] ,alpha=0.3, facecolor="red")
 methods =  ["weight normalisation","Logit Adjustment","re-scaling method"]
-ax.legend(methods)
+ax.legend(methods,prop={'size': 14})
 
 plt.scatter(taus[max0], means[max0,0],marker='x',color='black')
 #ax.text(taus[max0], means[max0,0], "  " + '%.4f' % means[max2,2], transform=fig.transFigure)
-ax.text(taus[max0]+0.035, means[max0,0]-0.1, "  " + '%.4f' % means[max0,0], transform=fig.transFigure)
-
+ax.text(0.015, means[max0,0]/100-0.1, "  " + '%.2f' % means[max0,0], transform=fig.transFigure)
+# means[max0,0]-10
 #ax.text(taus[max0], means[max0,0], "  " + '%.4f' % means[max0,0], transform=ax.transData)
 plt.scatter(taus[max1], means[max1,1],marker='x',color='black')
-ax.text(taus[max1], means[max1,1], "   " + '%.4f' % means[max1,1], transform=ax.transData)
+ax.text(taus[max1], means[max1,1], "   " + '%.2f' % means[max1,1], transform=ax.transData)
 plt.scatter(taus[max2], means[max2,2],marker='x',color='black')
-ax.text(taus[max2], means[max2,2], "  " + '%.4f' % means[max2,2], transform=ax.transData)
+ax.text(taus[max2], means[max2,2], "  " + '%.2f' % means[max2,2], transform=ax.transData)
 
 #ax.text(0.02, 0.5, textstr, fontsize=14, transform=plt.gcf().transFigure)
 
@@ -49,9 +53,9 @@ ax.set_axisbelow(True)
 
 
 ax.set_xbound([0,1])
-ax.set_ybound([0,1.02])
+ax.set_ybound([0,102])
 ax.set_xlabel("tau")
-ax.set_ylabel("test accuracy")
+ax.set_ylabel("Test accuracy (%)")
 
 
 

@@ -1,5 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+
+font = {'size'   : 15}
+matplotlib.rc('font', **font)
+
 fig, ax = plt.subplots()
 
 dist = np.load('synthExp3/dist.npy')

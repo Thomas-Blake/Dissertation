@@ -11,6 +11,9 @@ import matplotlib
 from dataset import CustomSyntheticDataset
 import pickle
 
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
+
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
@@ -179,7 +182,7 @@ if __name__ == "__main__":
             trainAccuracy[t,k] = train_loop(train_dataloader, model, loss_fn, optimizer)
             test_loop(test_dataloader, model, loss_fn)
         print("Done!")
-        ax.plot(np.arange(epochs),trainAccuracy[:,k],color=colors[k])
+        ax.plot(np.arange(epochs),100*trainAccuracy[:,k],color=colors[k])
     # torch.save(model,"./synthExp1/normalNeuralNet")
     model = NeuralNetwork()
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
@@ -188,11 +191,11 @@ if __name__ == "__main__":
         print(f"Epoch {t+1}\n-------------------------------"+str(6))
         trainAccuracy[t,5] = train_loop(train_dataloader, model, loss_fn, optimizer)
         test_loop(test_dataloader, model, loss_fn)
-    ax.plot(np.arange(epochs),trainAccuracy[:,5],color=colors[5])
-    ax.legend(['balanced ERM 1','balanced ERM 2','balanced ERM 3','balanced ERM 4','balanced ERM 5','standard ERM'])
-    ax.set_xlabel("epoch")
-    ax.set_ylabel("accuracy on train dataset")
-    ax.set_ybound([0,1])
+    ax.plot(np.arange(epochs),100*trainAccuracy[:,5],color=colors[5])
+    ax.legend([r'$f^{BAL}_1$',r'$f^{BAL}_2$',r'$f^{BAL}_3$',r'$f^{BAL}_4$',r'$f^{BAL}_5$',r'$f^{CE}_1$'])
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Accuracy on train dataset (%)")
+    ax.set_ybound([0,100])
     ax.set_axisbelow(True)
     ax.yaxis.grid(True)
 

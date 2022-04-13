@@ -10,6 +10,9 @@ import itertools
 import matplotlib
 import matplotlib.patches as mpatches
 
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
+
 def distCreater():
   dist=np.ones(33)
   for i in range(3):
@@ -191,7 +194,7 @@ if __name__ == "__main__":
   red_patch = mpatches.Patch(color='red', label='Tail Classes')
   blue_patch = mpatches.Patch(color='blue', label='Tail Classes')
   pink_patch = mpatches.Patch(color='m', label='Head Classes')
-  plt.legend(handles=[red_patch,blue_patch,pink_patch])
+  plt.legend(handles=[red_patch,blue_patch,pink_patch],prop={'size': 11})
   plt.savefig('synthExp3/images/exampleTrainDataset',dpi=500)
 
 

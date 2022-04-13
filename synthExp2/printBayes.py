@@ -3,6 +3,10 @@ import pickle
 import matplotlib.pyplot as plt
 from dataset import CustomSyntheticDataset
 import matplotlib.lines as mlines
+import matplotlib
+
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
 
 
 with open('./synthExp2/boundaries/balancedNeuralNetBoundary.pkl', 'rb') as handle:
@@ -45,14 +49,18 @@ ds.printSample(ax,alpha=0.1)
 
 # black_line = mlines.Line2D([], [], color='black',markersize=15, label='Neural Net Balanced loss')
 # grey_line = mlines.Line2D([], [], color='grey',markersize=15, label='Neural Net cross-entropy loss')
-blue_line = mlines.Line2D([], [], color='navy',markersize=15, label=r'Bayes rule for $R^{TEST}$')
-green_line = mlines.Line2D([], [], color='green',markersize=15, label=r'Bayes rule for $R^{TRAIN}$')
+blue_line = mlines.Line2D([], [], color='navy',markersize=15, label=r'$f_{TEST}^*$')
+green_line = mlines.Line2D([], [], color='green',markersize=15, label=r'$f_{TRAIN}^*$')
 
 # ax.legend(handles=[black_line,grey_line,blue_line,green_line])
 ax.legend(handles=[blue_line,green_line])
 
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
+
+ax.set_xbound([-8,8])
+ax.set_ybound([-8,8])
+
 
 
 

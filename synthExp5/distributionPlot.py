@@ -2,6 +2,10 @@ from turtle import color
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import matplotlib
+
+font = {'size'   : 15}
+matplotlib.rc('font', **font)
 
 
 x = np.linspace(-2.5,2.5,100)
@@ -23,13 +27,13 @@ ax.plot([0.25*np.log(1.99/1.01),0.25*np.log(1.99/1.01)],[0,0.5],color='purple',l
 
 #Adaptive
 ax.plot([1.08,1.08],[0,0.5],color='green',linewidth=3)
-legend1 = ax.legend(['0-1 TEST','Logit Adjusted loss','0-1 TRAIN','Equalised','Adaptive'],title="Decision Boundaries")
+legend1 = ax.legend([r'$f_{TEST}^*$','Logit Adjusted loss',r'$f_{TRAIN}^*$','Equalised','Adaptive'],title="Decision Boundaries",prop={'size': 11})
 ax.fill_between(x, 0, dist1,color='blue',alpha=0.3)
 ax.fill_between(x, 0, dist2,color='red',alpha=0.3)
 
 red_patch = mpatches.Patch(color='red', label='Y=2',alpha=0.3)
 blue_patch = mpatches.Patch(color='blue', label='Y=1',alpha=0.3)
-ax.legend(handles=[red_patch,blue_patch], title="Distributions")
+ax.legend(handles=[red_patch,blue_patch], title="Distributions",prop={'size': 11})
 #ax.legend(['Y=1','Y=2'])
 plt.gca().add_artist(legend1)
 

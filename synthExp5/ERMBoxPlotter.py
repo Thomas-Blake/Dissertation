@@ -1,10 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
+import matplotlib
+
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
 
 
-observation_empirical = np.load('synthExp5/empiricalERM2.npy')
-observation_true = np.load('synthExp5/trueERM2.npy')
+observation_empirical = 100*np.load('synthExp5/empiricalERM2.npy')
+observation_true = 100*np.load('synthExp5/trueERM2.npy')
 
 
 
@@ -25,15 +29,15 @@ for i in range(6):
 print(bpl['fliers'][0])
 ax.set_xticks(np.arange(1,7), [200,400,800,1600,3200,6400])
 ax.set_xlabel('Size of train dataset')
-ax.set_ylabel('Accuracy on test dataset')
-ax.set_ybound([0.9,1])
+ax.set_ylabel('Accuracy on test dataset (%)')
+ax.set_ybound([90,100])
 
 # blue_line = mpatches.Rectangle([], [], color='blue',markersize=15, label='Bayes Balanced loss')
 # green_line = mpatches.Rectangle([], [], color='green',markersize=15, label='Bayes cross-entropy loss')
 red_patch = mpatches.Patch(facecolor='red',label='Empirical prior estimate')
 blue_patch = mpatches.Patch(facecolor='blue',label='True prior')
 
-ax.legend(handles=[red_patch,blue_patch],prop={'size': 12})
+ax.legend(handles=[red_patch,blue_patch],prop={'size': 14})
 
 
 plt.savefig('synthExp5/images/ERMvsTruePrior',dpi=500)

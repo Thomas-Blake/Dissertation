@@ -4,7 +4,10 @@ import matplotlib.pyplot as plt
 from dataset import CustomSyntheticDataset
 import matplotlib.lines as mlines
 import numpy as np
+import matplotlib
 
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
 
 with open('./synthExp2/boundaries/balancedNeuralNetBoundary.pkl', 'rb') as handle:
     boundary1 = pickle.load(handle)
@@ -47,11 +50,11 @@ ds.printSample(ax,alpha=0.3)
 
 # black_line = mlines.Line2D([], [], color='black',markersize=15, label='Neural Net Balanced loss')
 # grey_line = mlines.Line2D([], [], color='grey',markersize=15, label='Neural Net cross-entropy loss')
-blue_line = mlines.Line2D([], [], color='navy',markersize=15, label=r'Neural Net Trained using $L^{CE}$')
-green_line = mlines.Line2D([], [], color='green',markersize=15, label=r'Neural Net Trained using $L^{BAL}$')
+blue_line = mlines.Line2D([], [], color='navy',markersize=15, label=r'Trained using $L^{CE}$')
+green_line = mlines.Line2D([], [], color='green',markersize=15, label=r'Trained using $L^{BAL}$')
 
 # ax.legend(handles=[black_line,grey_line,blue_line,green_line])
-ax.legend(handles=[green_line,blue_line],loc='lower left')
+ax.legend(handles=[green_line,blue_line],loc='lower left',prop={'size': 11})
 
 ax.set_ybound([-10,8])
 ax.set_xlabel('x1')

@@ -17,18 +17,19 @@ class NeuralNetwork(nn.Module):
     def __init__(self):
         super(NeuralNetwork, self).__init__()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(2, 100),
+            nn.Linear(2, 50),
             nn.ReLU(),
-            nn.Linear(100, 100),
+            nn.Linear(50, 50),
             nn.ReLU(),
-            nn.Linear(100, 100),
-            nn.ReLU(),
-            nn.Linear(100, 33),
+            nn.Linear(50, 50),
+            nn.ReLU()
         )
+        self.Wmatrix = torch.normal(mean=torch.zeros((50,33)), std=torch.ones((50,33)))
+        self.Wmatrix.requires_grad = True
 
     def forward(self, x):
-        logits = self.linear_relu_stack(x)
-        return logits
+        features = self.linear_relu_stack(x)
+        return torch.matmul(features, self.Wmatrix)
 
 
 

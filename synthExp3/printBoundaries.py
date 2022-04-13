@@ -5,6 +5,12 @@ from dataset import CustomSyntheticDataset
 import matplotlib.lines as mlines
 import numpy as np
 
+import matplotlib
+
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
+
+
 # with open('./synthExp3/boundaries/normalNeuralNetBoundary.pkl', 'rb') as handle:
 #     boundary1 = pickle.load(handle)
 
@@ -43,16 +49,16 @@ ax = ds.printSample(ax,alpha=0.5)
 
 # black_line = mlines.Line2D([], [], color='black',markersize=15, label='Neural Net decision boundary')
 # grey_line = mlines.Line2D([], [], color='grey',markersize=15, label='Neural Net cross-entropy loss')
-blue_line = mlines.Line2D([], [], color='blue',markersize=15, label='Bayes Balanced loss')
-green_line = mlines.Line2D([], [], color='green',markersize=15, label='Bayes cross-entropy loss')
+blue_line = mlines.Line2D([], [], color='blue',markersize=15, label=r'$f_{TRAIN}^*$')
+green_line = mlines.Line2D([], [], color='green',markersize=15, label=r'$f_{TEST}^*$')
 
 # ax.legend(handles=[black_line,grey_line,blue_line,green_line])
-ax.legend(handles=[blue_line,green_line],loc=3,prop={'size': 8})
+ax.legend(handles=[blue_line,green_line],loc=3,prop={'size': 11})
 # ax.legend(handles=[black_line])
 ax.set_xlabel('x1')
 ax.set_ylabel('x2')
 
 
 
-plt.savefig('synthExp3/images/test',dpi=500)
+plt.savefig('synthExp3/images/bayesWithTest',dpi=500)
 plt.show()
