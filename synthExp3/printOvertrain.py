@@ -13,7 +13,7 @@ from dataset import CustomSyntheticDataset
 import pickle
 import matplotlib
 
-font = {'size'   : 15}
+font = {'size'   : 13}
 matplotlib.rc('font', **font)
 
 observationsTrain = np.load('synthExp3/overfitTrain.npy')

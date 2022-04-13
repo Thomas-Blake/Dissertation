@@ -4,7 +4,10 @@ import itertools
 from dataset import CustomSyntheticDataset
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
 from matplotlib.colors import ListedColormap
+import matplotlib
 
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
 
 
 

@@ -5,6 +5,10 @@ from dataset import CustomSyntheticDataset
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
 from matplotlib.colors import ListedColormap
 import matplotlib.lines as mlines
+import matplotlib
+
+font = {'size'   : 14}
+matplotlib.rc('font', **font)
 
 
 
@@ -86,7 +90,7 @@ if __name__ == "__main__":
   ax, boundary = printDecBoundary(classifier=classifier,ax=ax,detail=1000)
   train_dataset.printSample(ax=ax,alpha=0.1)
   black_line = mlines.Line2D([], [], color='black',markersize=15, label=r'9-nearest neighbor decision boundary')
-  ax.legend(handles=[black_line])
+  ax.legend(handles=[black_line],prop={'size': 13})
 
   ax.set_xlabel('x1')
   ax.set_ylabel('x2')
