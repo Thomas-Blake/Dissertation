@@ -2,6 +2,8 @@ from ast import Lambda
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
 
 font = {'size'   : 15}
 matplotlib.rc('font', **font)
